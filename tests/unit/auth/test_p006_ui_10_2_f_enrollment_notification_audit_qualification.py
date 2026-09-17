@@ -109,6 +109,7 @@ def _successor_root(tmp_path: Path) -> tuple[Path,list[dict[str,object]]]:
     for name in (subject.F_FORWARD_FILE,subject.F_ROLLBACK_FILE,'m006_10_02_enrollment_notification_audit_filter_regex_correction.sql','m006_10_02_enrollment_notification_audit_filter_regex_correction_rollback.sql','migration_manifest.json'):
         (d/name).write_bytes((src/'database/migrations'/name).read_bytes())
     p=d/'migration_manifest.json'; payload=json.loads(p.read_text())
+    payload['migrations']=payload['migrations'][:36]
     payload['catalogue_version']=21
     payload['migrations'].append({
         'migration_id':'m006_10_02_later_successor','milestone_id':'M006.10.2','sequence_number':37,

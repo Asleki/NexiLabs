@@ -154,6 +154,8 @@ def _authorized_p006_7_11_15_7_composition_successor(root: Path, target_path: st
         return True
     if _authorized_p006_ui_10_1_account_enrollment_composition_successor(root, target_path):
         return True
+    if _authorized_p006_ui_10_3_layered_admin_composition_successor(root, target_path):
+        return True
     return _authorized_p006_7_11_15_10_r2_pwa_successor(root, target_path)
 
 
@@ -541,6 +543,42 @@ def _authorized_p006_ui_10_1_account_enrollment_composition_successor(root: Path
     return candidate.is_file() and sha256(candidate.read_bytes()).hexdigest() == expected
 
 
+# P006.UI.10.3 — exact reviewed layered Admin authentication composition
+# successor. Historical main.js hashes remain immutable; this seam recognizes
+# only the exact reviewed .10.3 browser-composition byte sequence.
+P006_UI_10_3_LAYERED_ADMIN_COMPOSITION_SUCCESSOR_SHA256 = {
+    "frontend/src/main.js": "f2fdb27c6cb2ee2ec436a6b1e06ee78e0eb64d36c1fafb46635cb473452481dd",
+}
+P006_UI_10_3_LAYERED_ADMIN_COMPOSITION_PROOF_FILES = (
+    "frontend/tests/auth/p006-ui-10-3-admin-auth.test.mjs",
+    "frontend/tests/auth/p006-ui-10-3-runtime-auth-client.test.mjs",
+    "tests/unit/auth/test_p006_ui_10_3_contracts.py",
+    "tests/unit/auth/test_p006_ui_10_3_security.py",
+)
+
+
+def _authorized_p006_ui_10_3_layered_admin_composition_successor(
+    root: Path,
+    target_path: str,
+) -> bool:
+    """Authorize only the exact reviewed P006.UI.10.3 main.js successor."""
+    expected = P006_UI_10_3_LAYERED_ADMIN_COMPOSITION_SUCCESSOR_SHA256.get(
+        target_path
+    )
+    if expected is None:
+        return False
+    if not all(
+        (root / proof).is_file()
+        for proof in P006_UI_10_3_LAYERED_ADMIN_COMPOSITION_PROOF_FILES
+    ):
+        return False
+    candidate = root / target_path
+    return (
+        candidate.is_file()
+        and sha256(candidate.read_bytes()).hexdigest() == expected
+    )
+
+
 # P006.UI.10.1.R2 — exact installed-PWA activation maintenance successor.
 # The historical v17, .15.10.1.3 and .10.1.R1 hashes remain immutable; this
 # seam recognizes only the reviewed service-worker/cache-policy bytes required
@@ -626,6 +664,8 @@ def test_phase_b_e_does_not_modify_locked_production_or_roadmap_files():
         if _authorized_p006_7_11_15_10_r2_pwa_successor(root, target_path):
             continue
         if _authorized_p006_ui_10_1_account_enrollment_composition_successor(root, target_path):
+            continue
+        if _authorized_p006_ui_10_3_layered_admin_composition_successor(root, target_path):
             continue
         if _authorized_p006_7_11_15_10_1_styling_architecture_successor(root, target_path):
             continue

@@ -49,6 +49,10 @@ EXPECTED_P006_UI_10_1_MAIN_SUCCESSORS = {
     "frontend/src/main.js": "77523c35b98d6c1485850979312dd03bd8a2e32ec74371f380724a4c425bb60f",
 }
 
+EXPECTED_P006_UI_10_3_MAIN_SUCCESSORS = {
+    "frontend/src/main.js": "f2fdb27c6cb2ee2ec436a6b1e06ee78e0eb64d36c1fafb46635cb473452481dd",
+}
+
 
 # P006.UI.10.1.R2 compatibility maintenance: append the exact installed-PWA
 # activation successor for the shared service-worker path without broadening CM1.
@@ -76,6 +80,18 @@ def _assert_current_cm1_or_reviewed_successor(relative: str, expected_cm1: str) 
         assert successor_hashes.get(relative) == expected_account
         successor_authorize = LOCK[
             "_authorized_p006_ui_10_1_account_enrollment_composition_successor"
+        ]
+        assert successor_authorize(ROOT, relative)
+        return
+
+    expected_admin = EXPECTED_P006_UI_10_3_MAIN_SUCCESSORS.get(relative)
+    if expected_admin is not None and actual == expected_admin:
+        successor_hashes = LOCK[
+            "P006_UI_10_3_LAYERED_ADMIN_COMPOSITION_SUCCESSOR_SHA256"
+        ]
+        assert successor_hashes.get(relative) == expected_admin
+        successor_authorize = LOCK[
+            "_authorized_p006_ui_10_3_layered_admin_composition_successor"
         ]
         assert successor_authorize(ROOT, relative)
         return
@@ -153,6 +169,7 @@ def test_cm1_r1_authorization_is_exact_path_and_does_not_expand_the_lock():
     historical_authorize = LOCK["_authorized_p006_7_11_15_7_composition_successor"]
     r2_authorize = LOCK["_authorized_p006_7_11_15_10_r2_pwa_successor"]
     account_authorize = LOCK["_authorized_p006_ui_10_1_account_enrollment_composition_successor"]
+    admin_authorize = LOCK["_authorized_p006_ui_10_3_layered_admin_composition_successor"]
     account_activation_authorize = LOCK["_authorized_p006_ui_10_1_r2_installed_pwa_activation_successor"]
 
     for relative, expected_cm1 in EXPECTED_CM1.items():
@@ -165,6 +182,15 @@ def test_cm1_r1_authorization_is_exact_path_and_does_not_expand_the_lock():
                 assert not cm1_authorize(ROOT, relative)
                 assert not r2_authorize(ROOT, relative)
                 assert account_authorize(ROOT, relative)
+                assert historical_authorize(ROOT, relative)
+                continue
+
+            expected_admin = EXPECTED_P006_UI_10_3_MAIN_SUCCESSORS.get(relative)
+            if expected_admin is not None and actual == expected_admin:
+                assert not cm1_authorize(ROOT, relative)
+                assert not r2_authorize(ROOT, relative)
+                assert not account_authorize(ROOT, relative)
+                assert admin_authorize(ROOT, relative)
                 assert historical_authorize(ROOT, relative)
                 continue
 
@@ -216,10 +242,14 @@ def test_cm1_r1_authorization_is_exact_path_and_does_not_expand_the_lock():
     assert not r2_authorize(ROOT, "infrastructure/api/app/live_composition.py")
     assert not r2_authorize(ROOT, "roadmap_data.py")
 
-    assert account_authorize(ROOT, "frontend/src/main.js")
+    assert not account_authorize(ROOT, "frontend/src/main.js")
+    assert admin_authorize(ROOT, "frontend/src/main.js")
     assert not account_authorize(ROOT, "frontend/sw.js")
     assert not account_authorize(ROOT, "frontend/src/pwa/cache-policy.js")
     assert not account_authorize(ROOT, "roadmap_data.py")
+    assert not admin_authorize(ROOT, "frontend/sw.js")
+    assert not admin_authorize(ROOT, "frontend/src/pwa/cache-policy.js")
+    assert not admin_authorize(ROOT, "roadmap_data.py")
 
 
     assert account_activation_authorize(ROOT, "frontend/sw.js")

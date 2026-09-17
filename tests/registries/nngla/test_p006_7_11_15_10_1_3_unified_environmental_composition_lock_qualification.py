@@ -45,6 +45,10 @@ EXPECTED_P006_UI_10_1_R2_REQUEST_GOVERNANCE_QUALIFICATION_SHA256 = (
     "b363d3faebb4631ad0f785d0b8c2aed2167429892f0c9381c396bd29abf6a03b"
 )
 
+EXPECTED_P006_UI_10_3_REQUEST_GOVERNANCE_QUALIFICATION_SHA256 = (
+    "8d6e7e5361d120568d993219fe4c5320976f62e819f10c3394ef5a2655b5a0f0"
+)
+
 EXPECTED_15_10_1_HISTORICAL_TEST_SUCCESSORS = {
     "frontend/tests/integration/p006_7_11_15_10_map-first-css-contract.test.mjs":
         "b757a4a5994cb9d0630a15534338b0d07a4816115ba5f59c07213975cde16278",
@@ -197,14 +201,21 @@ def test_historical_successor_evidence_remains_present_and_distinct():
     assert EXPECTED_15_10_1_2_R1_GOVERNANCE_QUALIFICATION_SHA256 == (
         "400d5127657a58c1d9716d2593119a267e24f7c1fdaffcd281c6179c08ad7a02"
     )
+    assert EXPECTED_P006_UI_10_1_R2_REQUEST_GOVERNANCE_QUALIFICATION_SHA256 == (
+        "b363d3faebb4631ad0f785d0b8c2aed2167429892f0c9381c396bd29abf6a03b"
+    )
+    assert EXPECTED_P006_UI_10_3_REQUEST_GOVERNANCE_QUALIFICATION_SHA256 == (
+        "8d6e7e5361d120568d993219fe4c5320976f62e819f10c3394ef5a2655b5a0f0"
+    )
     assert sha256(predecessor_qualification.read_bytes()).hexdigest() == (
-        EXPECTED_P006_UI_10_1_R2_REQUEST_GOVERNANCE_QUALIFICATION_SHA256
+        EXPECTED_P006_UI_10_3_REQUEST_GOVERNANCE_QUALIFICATION_SHA256
     )
     predecessor_text = predecessor_qualification.read_text(encoding="utf-8")
     assert "EXPECTED_GOVERNANCE_SUCCESSORS" in predecessor_text
     assert "EXPECTED_15_10_1_3_GOVERNANCE_SUCCESSORS" in predecessor_text
     assert "EXPECTED_P006_UI_10_1_R1_GOVERNANCE_SUCCESSORS" in predecessor_text
     assert "EXPECTED_P006_UI_10_1_R2_GOVERNANCE_SUCCESSORS" in predecessor_text
+    assert "EXPECTED_P006_UI_10_3_GOVERNANCE_SUCCESSORS" in predecessor_text
     assert "ccc7a1ea66eb7884eee3895a0bd5a93155ad26104f410c63481d2480817aed6b" in predecessor_text
     assert "76aeaa901f96fd87328615b61022fae293e1f7d8487e643294d84d1c44c4e1d4" in predecessor_text
 

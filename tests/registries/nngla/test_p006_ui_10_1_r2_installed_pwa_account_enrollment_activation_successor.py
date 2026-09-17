@@ -65,8 +65,15 @@ def test_p006_ui_10_1_r2_current_pwa_bytes_and_authorization_are_exact():
 def test_p006_ui_10_1_r2_preserves_r1_main_composition_exactly():
     assert LOCK["P006_UI_10_1_ACCOUNT_ENROLLMENT_COMPOSITION_SUCCESSOR_SHA256"] == EXPECTED_R1_MAIN
     authorize_r1 = LOCK["_authorized_p006_ui_10_1_account_enrollment_composition_successor"]
-    assert _digest("frontend/src/main.js") == EXPECTED_R1_MAIN["frontend/src/main.js"]
-    assert authorize_r1(ROOT, "frontend/src/main.js")
+    current = _digest("frontend/src/main.js")
+    if current == EXPECTED_R1_MAIN["frontend/src/main.js"]:
+        assert authorize_r1(ROOT, "frontend/src/main.js")
+    else:
+        expected = LOCK["P006_UI_10_3_LAYERED_ADMIN_COMPOSITION_SUCCESSOR_SHA256"]
+        assert current == expected["frontend/src/main.js"]
+        assert not authorize_r1(ROOT, "frontend/src/main.js")
+        authorize_admin = LOCK["_authorized_p006_ui_10_3_layered_admin_composition_successor"]
+        assert authorize_admin(ROOT, "frontend/src/main.js")
 
 
 def test_p006_ui_10_1_r2_frontend_activation_proof_is_exact_and_present():

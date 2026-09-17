@@ -1,7 +1,7 @@
 {
   "manifest_schema": "npp.database-migration-manifest",
   "manifest_schema_version": 1,
-  "catalogue_version": 20,
+  "catalogue_version": 21,
   "migrations": [
     {
       "migration_id": "m009_10_04_name_catalogue",
@@ -1469,6 +1469,80 @@
       "rollback_sha256": "d84b13f383897c9bda152780475bfa5f830a42e0d937da6dddaa7aaf2fd6d59b",
       "forward_byte_size": 1025,
       "rollback_byte_size": 658,
+      "transaction_policy": "embedded",
+      "destructive": false,
+      "catalogue_entry_version": 1
+    },
+    {
+      "migration_id": "m006_10_03_first_admin_governance_foundation",
+      "milestone_id": "M006.10.3",
+      "sequence_number": 37,
+      "description": "first_admin_governance_foundation",
+      "forward_file": "m006_10_03_first_admin_governance_foundation.sql",
+      "rollback_file": "m006_10_03_first_admin_governance_foundation_rollback.sql",
+      "depends_on": [
+        "m006_10_02_enrollment_notification_audit_filter_regex_correction"
+      ],
+      "expected_objects": {
+        "schemas": [],
+        "tables": [
+          "nexilabs_auth.admin_developer_id_allocator",
+          "nexilabs_auth.enigma_profile_secret_verifier",
+          "nexilabs_auth.authority_audit_event"
+        ],
+        "indexes": [
+          "ux_nexilabs_auth_active_enigma_profile_secret",
+          "ix_nexilabs_auth_enigma_profile_secret_state",
+          "ux_nexilabs_auth_authority_audit_sequence",
+          "ix_nexilabs_auth_authority_audit_type_time",
+          "ix_nexilabs_auth_authority_audit_actor",
+          "ix_nexilabs_auth_authority_audit_subject",
+          "ix_nexilabs_auth_authority_audit_correlation"
+        ],
+        "constraints": [
+          "nexilabs_auth.ck_nexilabs_auth_admin_id_allocator_key",
+          "nexilabs_auth.ck_nexilabs_auth_admin_id_allocator_prefix",
+          "nexilabs_auth.ck_nexilabs_auth_admin_id_allocator_width",
+          "nexilabs_auth.ck_nexilabs_auth_admin_id_allocator_sequence",
+          "nexilabs_auth.ck_nexilabs_auth_admin_id_allocator_version",
+          "nexilabs_auth.ck_nexilabs_auth_admin_id_allocator_time",
+          "nexilabs_auth.ck_nexilabs_auth_enigma_secret_verifier_id",
+          "nexilabs_auth.ck_nexilabs_auth_enigma_secret_verifier_scheme",
+          "nexilabs_auth.ck_nexilabs_auth_enigma_secret_verifier_version",
+          "nexilabs_auth.ck_nexilabs_auth_enigma_secret_verifier_payload",
+          "nexilabs_auth.ck_nexilabs_auth_enigma_secret_state",
+          "nexilabs_auth.ck_nexilabs_auth_enigma_secret_policy",
+          "nexilabs_auth.ck_nexilabs_auth_enigma_secret_state_time",
+          "nexilabs_auth.fk_nexilabs_auth_authority_audit_admin_operator",
+          "nexilabs_auth.ck_nexilabs_auth_authority_audit_id",
+          "nexilabs_auth.ck_nexilabs_auth_authority_audit_event_type",
+          "nexilabs_auth.ck_nexilabs_auth_authority_audit_runtime",
+          "nexilabs_auth.ck_nexilabs_auth_authority_audit_actor",
+          "nexilabs_auth.ck_nexilabs_auth_authority_audit_subject_type",
+          "nexilabs_auth.ck_nexilabs_auth_authority_audit_subject_id",
+          "nexilabs_auth.ck_nexilabs_auth_authority_audit_outcome",
+          "nexilabs_auth.ck_nexilabs_auth_authority_audit_permission",
+          "nexilabs_auth.ck_nexilabs_auth_authority_audit_policy",
+          "nexilabs_auth.ck_nexilabs_auth_authority_audit_source",
+          "nexilabs_auth.ck_nexilabs_auth_authority_audit_correlation",
+          "nexilabs_auth.ck_nexilabs_auth_authority_audit_causation",
+          "nexilabs_auth.ck_nexilabs_auth_authority_audit_receipt_reference",
+          "nexilabs_auth.ck_nexilabs_auth_authority_audit_receipt_sha256",
+          "nexilabs_auth.ck_nexilabs_auth_authority_audit_provider_reference"
+        ],
+        "views": [],
+        "functions": [
+          "nexilabs_auth.reserve_admin_developer_id",
+          "nexilabs_auth.validate_admin_developer_id_allocator_transition",
+          "nexilabs_auth.validate_enigma_profile_secret_verifier_transition",
+          "nexilabs_auth.reject_authority_audit_event_mutation",
+          "nexilabs_auth.reject_authority_audit_event_truncate"
+        ]
+      },
+      "forward_sha256": "826f3c8027f51c352f71b3792959d266f233ec0045572dc5e7940389967efdde",
+      "rollback_sha256": "dc6df79ad6d75ddc6d3c70d0e9a09da1402d04b19af81260ee26dcfe6b04b8ee",
+      "forward_byte_size": 14431,
+      "rollback_byte_size": 1323,
       "transaction_policy": "embedded",
       "destructive": false,
       "catalogue_entry_version": 1

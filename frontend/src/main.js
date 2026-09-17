@@ -26,9 +26,31 @@ export async function bootstrap(documentRef = globalThis.document, windowRef = g
   void import("./app/account/account-enrollment-experience.js")
     .then(({ installAccountEnrollmentExperience }) => installAccountEnrollmentExperience({ documentRef, windowRef }))
     .catch((error) => console.warn("[NexiLabs PWA] Account enrollment presentation unavailable.", error));
-  void import("./app/auth/authentication-experience.js")
-    .then(({ installAuthenticationExperience }) => installAuthenticationExperience({ documentRef, windowRef, application }))
-    .catch((error) => console.warn("[NexiLabs PWA] Development authentication unavailable.", error));
+
+  // P006.UI.10.3: preserve the locked authentication experience while supplying
+  // an additive runtime-aware transport. Simulation/Guest development fixtures
+  // remain on :8766; Production NexaDevs authentication uses the governed :8767
+  // PostgreSQL authority. Admin Layer 2 is attached only after Layer 1 resolves.
+  void Promise.all([
+    import("./app/auth/authentication-experience.js"),
+    import("./app/auth/runtime-auth-client.js"),
+  ])
+    .then(([{ installAuthenticationExperience }, { createRuntimeAuthClient }]) => {
+      const authentication = installAuthenticationExperience({
+        documentRef,
+        windowRef,
+        application,
+        client: createRuntimeAuthClient({ fetchRef, windowRef }),
+      });
+      return import("./app/auth/admin-authentication-experience.js")
+        .then(({ installAdminAuthenticationExperience }) => installAdminAuthenticationExperience({
+          documentRef,
+          windowRef,
+          authentication,
+        }));
+    })
+    .catch((error) => console.warn("[NexiLabs PWA] Layered authentication unavailable.", error));
+
   void import("./app/features/novegeo-national-geography-experience.js")
     .then(({ installNoveGeoNationalGeographyExperience }) => installNoveGeoNationalGeographyExperience({ documentRef, windowRef, fetchRef, apiBaseUrl: config.apiBaseUrl }))
     .catch((error) => console.warn("[NexiLabs PWA] Governed national geography unavailable.", error));

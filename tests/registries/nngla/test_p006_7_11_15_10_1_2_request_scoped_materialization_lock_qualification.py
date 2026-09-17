@@ -63,6 +63,14 @@ EXPECTED_P006_UI_10_1_R2_GOVERNANCE_SUCCESSORS = {
     "tests/registries/nngla/test_p006_7_11_15_10_1_styling_architecture_lock_qualification.py":
         "70f744e609c4012d4070fdfbdddd22f5a6bf4494ec063a1a42b528a53d39bf8d",
 }
+
+# P006.UI.10.3 compatibility maintenance: layered Admin authentication
+# legitimately advances only the centralized operational governance lock.
+# Earlier governance generations remain immutable evidence above.
+EXPECTED_P006_UI_10_3_GOVERNANCE_SUCCESSORS = {
+    "tests/registries/nngla/test_p006_7_11_7_20_operational_backend_lock.py":
+        "3ec98aedf6580f69f6b31924765c1f1c49e636b7cd71f52b908a2ff4ec473cde",
+}
 HISTORICAL_15_10_1_POOL_SHA256 = (
     "b478ca0808871c9bc4572f119d1f75ef83edaa241668653b77a2eb33fd72879b"
 )
@@ -132,6 +140,9 @@ def test_governance_successors_are_exact_and_preserve_predecessor_evidence():
         "tests/registries/nngla/test_p006_7_11_7_20_operational_backend_lock.py"
     }
     assert set(EXPECTED_P006_UI_10_1_R2_GOVERNANCE_SUCCESSORS) == set(EXPECTED_GOVERNANCE_SUCCESSORS)
+    assert set(EXPECTED_P006_UI_10_3_GOVERNANCE_SUCCESSORS) == {
+        "tests/registries/nngla/test_p006_7_11_7_20_operational_backend_lock.py"
+    }
     for relative, expected in EXPECTED_GOVERNANCE_SUCCESSORS.items():
         path = ROOT / relative
         assert path.is_file(), relative
@@ -143,10 +154,13 @@ def test_governance_successors_are_exact_and_preserve_predecessor_evidence():
         r1_expected = EXPECTED_P006_UI_10_1_R1_GOVERNANCE_SUCCESSORS.get(relative)
         if r1_expected is not None and actual == r1_expected:
             continue
+        ui_10_3_expected = EXPECTED_P006_UI_10_3_GOVERNANCE_SUCCESSORS.get(relative)
+        if ui_10_3_expected is not None and actual == ui_10_3_expected:
+            continue
         r2_expected = EXPECTED_P006_UI_10_1_R2_GOVERNANCE_SUCCESSORS.get(relative)
         assert r2_expected is not None, (
             f"{relative} advanced beyond the reviewed P006.UI.10.1.R1 governance successor "
-            "without an explicit P006.UI.10.1.R2 successor"
+            "without an explicit P006.UI.10.1.R2 or P006.UI.10.3 successor"
         )
         assert actual == r2_expected
     styling_text = (
