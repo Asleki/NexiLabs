@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "milestoneId": "NEXILABS.PAB.1",
+  "publicHostname": "nexilabs.nexaecosystem.com",
+  "defaultMode": "DEVELOPMENT_PRIVATE",
+  "allowedModes": [
+    "DEVELOPMENT_PRIVATE",
+    "PUBLIC"
+  ],
+  "denyByDefault": true,
+  "identityProvider": "google",
+  "authorization": "exact_server_side_email_allowlist",
+  "allowlistPath": "/etc/nexa/nexilabs-access/allowed-emails",
+  "oauth2ProxyListener": "127.0.0.1:4180",
+  "publicListener": "caddy",
+  "frontendAllowlistForbidden": true,
+  "privateOfflineShellAllowed": false,
+  "publicModeExplicitOnly": true,
+  "innerNexiLabsAuthenticationUnchanged": true
+}

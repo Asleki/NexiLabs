@@ -1,0 +1,52 @@
+__NEXILABS_PUBLIC_HOSTNAME__ {
+    encode zstd gzip
+
+    # OAuth endpoints must remain reachable before authentication so Google can
+    # complete sign-in and callback handling.
+    handle /oauth2/* {
+        reverse_proxy 127.0.0.1:4180 {
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-Uri {uri}
+        }
+    }
+
+    # Every application route is authenticated at the edge.
+    handle {
+        forward_auth 127.0.0.1:4180 {
+            uri /oauth2/auth
+            header_up X-Real-IP {remote_host}
+
+            @unauthorized status 401
+            handle_response @unauthorized {
+                redir * /oauth2/sign_in?rd={scheme}://{host}{uri}
+            }
+        }
+
+        # Private development must not expose the normal offline PWA shell.
+        # Serve a cleanup worker instead; it purges NexiLabs caches and
+        # unregisters itself so subsequent launches must reach this edge.
+        @private_worker path /sw.js
+        handle @private_worker {
+            root * /usr/share/nexa/nexilabs-access
+            rewrite * /private-sw.js
+            header Cache-Control "no-store, max-age=0"
+            header Service-Worker-Allowed "/"
+            header X-NexiLabs-Access-Mode "DEVELOPMENT_PRIVATE"
+            file_server
+        }
+
+        header X-NexiLabs-Access-Mode "DEVELOPMENT_PRIVATE"
+        reverse_proxy __NEXILABS_PWA_UPSTREAM__
+    }
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "no-referrer"
+        X-Frame-Options "DENY"
+    }
+
+    log {
+        output file /var/log/caddy/nexilabs-access.log
+    }
+}

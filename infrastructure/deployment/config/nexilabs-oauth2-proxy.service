@@ -1,0 +1,22 @@
+[Unit]
+Description=NexiLabs private-development Google access gateway
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=nexa-access
+Group=nexa-access
+EnvironmentFile=/etc/nexa/nexilabs-access.env
+ExecStart=/usr/local/bin/oauth2-proxy
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadOnlyPaths=/etc/nexa/nexilabs-access /etc/nexa/nexilabs-access.env
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

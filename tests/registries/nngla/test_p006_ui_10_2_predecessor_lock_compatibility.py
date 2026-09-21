@@ -22,6 +22,8 @@ import subprocess
 MIGRATION_ID = "m006_10_02_nexilabs_account_credential_authority"
 P006_UI_10_1_R2_COMMIT = "d62c5c119728b6b8a23cebc2feaf4d2c74b3f419"
 P006_UI_10_2_A_COMMIT = "cc28249f89ae9b530f0569d306ddd6cc6354e01c"
+P006_UI_10_3_COMMIT = "d63691240960fff4f0ac8cde8ee224a52aca5425"
+NEXILABS_RI_2_COMMIT = "f011a3f1329b5f2dfc2bba268d3cae85618ad0ee"
 
 P006_UI_10_3_REVIEWED_SUCCESSOR_SHA256 = {
     "frontend/src/main.js": "f2fdb27c6cb2ee2ec436a6b1e06ee78e0eb64d36c1fafb46635cb473452481dd",
@@ -120,7 +122,23 @@ def test_d62c5c1_known_strict_hash_predecessors_are_still_exact() -> None:
 
         if ri_2 is not None:
             assert p006_ui_10_3 is not None, path
-            assert sha256(head).hexdigest() == p006_ui_10_3, path
+
+            p006_ui_10_3_bytes = _git_bytes(
+                root, P006_UI_10_3_COMMIT, path
+            )
+            assert p006_ui_10_3_bytes is not None, path
+            assert (
+                sha256(p006_ui_10_3_bytes).hexdigest()
+                == p006_ui_10_3
+            ), path
+
+            ri_2_bytes = _git_bytes(
+                root, NEXILABS_RI_2_COMMIT, path
+            )
+            assert ri_2_bytes is not None, path
+            assert sha256(ri_2_bytes).hexdigest() == ri_2, path
+
+            assert sha256(head).hexdigest() == ri_2, path
             assert sha256(candidate.read_bytes()).hexdigest() == ri_2, path
         elif p006_ui_10_3 is not None:
             assert sha256(head).hexdigest() == p006_ui_10_3, path
@@ -144,7 +162,23 @@ def test_all_locked_auth_pwa_strict_tests_and_roadmaps_are_byte_identical_to_hea
 
         if ri_2 is not None:
             assert p006_ui_10_3 is not None, path
-            assert sha256(head).hexdigest() == p006_ui_10_3, path
+
+            p006_ui_10_3_bytes = _git_bytes(
+                root, P006_UI_10_3_COMMIT, path
+            )
+            assert p006_ui_10_3_bytes is not None, path
+            assert (
+                sha256(p006_ui_10_3_bytes).hexdigest()
+                == p006_ui_10_3
+            ), path
+
+            ri_2_bytes = _git_bytes(
+                root, NEXILABS_RI_2_COMMIT, path
+            )
+            assert ri_2_bytes is not None, path
+            assert sha256(ri_2_bytes).hexdigest() == ri_2, path
+
+            assert sha256(head).hexdigest() == ri_2, path
             assert sha256(candidate.read_bytes()).hexdigest() == ri_2, path
             continue
 

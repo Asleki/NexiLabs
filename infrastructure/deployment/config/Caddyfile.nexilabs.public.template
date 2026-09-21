@@ -1,0 +1,19 @@
+__NEXILABS_PUBLIC_HOSTNAME__ {
+    encode zstd gzip
+
+    # PUBLIC removes only the outer development allowlist. The NexiLabs
+    # Guest/Developer/Admin authorization model remains application-owned.
+    header X-NexiLabs-Access-Mode "PUBLIC"
+    reverse_proxy __NEXILABS_PWA_UPSTREAM__
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "no-referrer"
+        X-Frame-Options "DENY"
+    }
+
+    log {
+        output file /var/log/caddy/nexilabs-access.log
+    }
+}
