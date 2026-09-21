@@ -71,6 +71,15 @@ EXPECTED_P006_UI_10_3_GOVERNANCE_SUCCESSORS = {
     "tests/registries/nngla/test_p006_7_11_7_20_operational_backend_lock.py":
         "3ec98aedf6580f69f6b31924765c1f1c49e636b7cd71f52b908a2ff4ec473cde",
 }
+# NEXILABS.RI.2 repository-presentation compatibility maintenance:
+# the exact README candidate legitimately advances only the centralized
+# operational governance lock. Earlier generations above remain immutable.
+EXPECTED_NEXILABS_RI_2_GOVERNANCE_SUCCESSORS = {
+    "tests/registries/nngla/test_p006_7_11_7_20_operational_backend_lock.py":
+        "42b8706baa902bfbe9d7e682ffeb98ccecdcb6b6ed964ec65c41b1c2cb60a9b5",
+}
+
+
 HISTORICAL_15_10_1_POOL_SHA256 = (
     "b478ca0808871c9bc4572f119d1f75ef83edaa241668653b77a2eb33fd72879b"
 )
@@ -143,6 +152,9 @@ def test_governance_successors_are_exact_and_preserve_predecessor_evidence():
     assert set(EXPECTED_P006_UI_10_3_GOVERNANCE_SUCCESSORS) == {
         "tests/registries/nngla/test_p006_7_11_7_20_operational_backend_lock.py"
     }
+    assert set(EXPECTED_NEXILABS_RI_2_GOVERNANCE_SUCCESSORS) == {
+        "tests/registries/nngla/test_p006_7_11_7_20_operational_backend_lock.py"
+    }
     for relative, expected in EXPECTED_GOVERNANCE_SUCCESSORS.items():
         path = ROOT / relative
         assert path.is_file(), relative
@@ -156,6 +168,9 @@ def test_governance_successors_are_exact_and_preserve_predecessor_evidence():
             continue
         ui_10_3_expected = EXPECTED_P006_UI_10_3_GOVERNANCE_SUCCESSORS.get(relative)
         if ui_10_3_expected is not None and actual == ui_10_3_expected:
+            continue
+        ri_2_expected = EXPECTED_NEXILABS_RI_2_GOVERNANCE_SUCCESSORS.get(relative)
+        if ri_2_expected is not None and actual == ri_2_expected:
             continue
         r2_expected = EXPECTED_P006_UI_10_1_R2_GOVERNANCE_SUCCESSORS.get(relative)
         assert r2_expected is not None, (

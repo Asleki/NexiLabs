@@ -20,6 +20,7 @@ import subprocess
 
 
 MIGRATION_ID = "m006_10_02_nexilabs_account_credential_authority"
+P006_UI_10_1_R2_COMMIT = "d62c5c119728b6b8a23cebc2feaf4d2c74b3f419"
 P006_UI_10_2_A_COMMIT = "cc28249f89ae9b530f0569d306ddd6cc6354e01c"
 
 P006_UI_10_3_REVIEWED_SUCCESSOR_SHA256 = {
@@ -30,6 +31,19 @@ P006_UI_10_3_REVIEWED_SUCCESSOR_SHA256 = {
     "tests/registries/nngla/test_p006_7_11_15_10_1_2_request_scoped_materialization_lock_qualification.py": "8d6e7e5361d120568d993219fe4c5320976f62e819f10c3394ef5a2655b5a0f0",
     "tests/registries/nngla/test_p006_7_11_15_10_1_3_unified_environmental_composition_lock_qualification.py": "dd6c9c17cb8d30e69d92a51f5142b388a2152ea787021f234bf66b63cd97934c",
 }
+
+# NEXILABS.RI.2 exact qualification successors. This is deliberately
+# separate from P006.UI.10.3 evidence so the .10.3 generation remains
+# immutable historical provenance.
+NEXILABS_RI_2_REVIEWED_SUCCESSOR_SHA256 = {
+    "tests/registries/nngla/test_p006_7_11_7_20_operational_backend_lock.py":
+        "42b8706baa902bfbe9d7e682ffeb98ccecdcb6b6ed964ec65c41b1c2cb60a9b5",
+    "tests/registries/nngla/test_p006_7_11_15_10_1_2_request_scoped_materialization_lock_qualification.py":
+        "9980eebec89303c4a5845e7311a6824b4a7b18a653d0fb0bf14ea77aacfd59a8",
+    "tests/registries/nngla/test_p006_7_11_15_10_1_3_unified_environmental_composition_lock_qualification.py":
+        "a597230d3e9b766b5da85a5e25c7fa80169ca0c6572a3608d65a724d36e7ea8c",
+}
+
 
 IMMUTABLE_PREDECESSOR_PATHS = (
     "frontend/src/main.js",
@@ -93,14 +107,27 @@ def test_d62c5c1_known_strict_hash_predecessors_are_still_exact() -> None:
     for path, expected in KNOWN_D62C5C1_HASHES.items():
         candidate = root / path
         assert candidate.is_file(), path
+
+        predecessor = _git_bytes(root, P006_UI_10_1_R2_COMMIT, path)
+        assert predecessor is not None, path
+        assert sha256(predecessor).hexdigest() == expected, path
+
         head = _head_bytes(root, path)
         assert head is not None, path
-        assert sha256(head).hexdigest() == expected, path
-        reviewed = P006_UI_10_3_REVIEWED_SUCCESSOR_SHA256.get(path)
-        if reviewed is None:
-            assert candidate.read_bytes() == head, path
+
+        p006_ui_10_3 = P006_UI_10_3_REVIEWED_SUCCESSOR_SHA256.get(path)
+        ri_2 = NEXILABS_RI_2_REVIEWED_SUCCESSOR_SHA256.get(path)
+
+        if ri_2 is not None:
+            assert p006_ui_10_3 is not None, path
+            assert sha256(head).hexdigest() == p006_ui_10_3, path
+            assert sha256(candidate.read_bytes()).hexdigest() == ri_2, path
+        elif p006_ui_10_3 is not None:
+            assert sha256(head).hexdigest() == p006_ui_10_3, path
+            assert sha256(candidate.read_bytes()).hexdigest() == p006_ui_10_3, path
         else:
-            assert sha256(candidate.read_bytes()).hexdigest() == reviewed, path
+            assert sha256(head).hexdigest() == expected, path
+            assert candidate.read_bytes() == head, path
 
 def test_all_locked_auth_pwa_strict_tests_and_roadmaps_are_byte_identical_to_head() -> None:
     root = _root()
@@ -111,10 +138,21 @@ def test_all_locked_auth_pwa_strict_tests_and_roadmaps_are_byte_identical_to_hea
             continue
         assert head is not None, f"P006.UI.10.2 must not introduce predecessor path {path}"
         assert candidate.is_file(), f"P006.UI.10.2 must not remove predecessor path {path}"
-        reviewed = P006_UI_10_3_REVIEWED_SUCCESSOR_SHA256.get(path)
-        if reviewed is not None:
-            assert sha256(candidate.read_bytes()).hexdigest() == reviewed, path
+
+        p006_ui_10_3 = P006_UI_10_3_REVIEWED_SUCCESSOR_SHA256.get(path)
+        ri_2 = NEXILABS_RI_2_REVIEWED_SUCCESSOR_SHA256.get(path)
+
+        if ri_2 is not None:
+            assert p006_ui_10_3 is not None, path
+            assert sha256(head).hexdigest() == p006_ui_10_3, path
+            assert sha256(candidate.read_bytes()).hexdigest() == ri_2, path
             continue
+
+        if p006_ui_10_3 is not None:
+            assert sha256(head).hexdigest() == p006_ui_10_3, path
+            assert sha256(candidate.read_bytes()).hexdigest() == p006_ui_10_3, path
+            continue
+
         assert candidate.read_bytes() == head, f"P006.UI.10.2 modified locked predecessor {path}"
 
 def test_complete_migration_manifest_preserves_committed_10_2_a_predecessor_prefix() -> None:

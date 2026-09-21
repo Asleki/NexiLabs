@@ -579,6 +579,32 @@ def _authorized_p006_ui_10_3_layered_admin_composition_successor(
     )
 
 
+# NEXILABS.RI.2 — exact repository-presentation successor.
+# README.md is repository presentation/documentation rather than a Production
+# runtime or roadmap authority. This seam authorizes only the reviewed RI.2
+# README byte sequence and does not create a general documentation exemption.
+NEXILABS_RI_2_REPOSITORY_PRESENTATION_SUCCESSOR_SHA256 = {
+    "README.md": "d7b0b434d9841cc9712c31120d0babf1f84edb5791938b46c399303857c735dc",
+}
+
+
+def _authorized_nexilabs_ri_2_repository_presentation_successor(
+    root: Path,
+    target_path: str,
+) -> bool:
+    """Authorize only the exact reviewed NEXILABS.RI.2 README successor."""
+    expected = NEXILABS_RI_2_REPOSITORY_PRESENTATION_SUCCESSOR_SHA256.get(
+        target_path
+    )
+    if expected is None:
+        return False
+    candidate = root / target_path
+    return (
+        candidate.is_file()
+        and sha256(candidate.read_bytes()).hexdigest() == expected
+    )
+
+
 # P006.UI.10.1.R2 — exact installed-PWA activation maintenance successor.
 # The historical v17, .15.10.1.3 and .10.1.R1 hashes remain immutable; this
 # seam recognizes only the reviewed service-worker/cache-policy bytes required
@@ -666,6 +692,8 @@ def test_phase_b_e_does_not_modify_locked_production_or_roadmap_files():
         if _authorized_p006_ui_10_1_account_enrollment_composition_successor(root, target_path):
             continue
         if _authorized_p006_ui_10_3_layered_admin_composition_successor(root, target_path):
+            continue
+        if _authorized_nexilabs_ri_2_repository_presentation_successor(root, target_path):
             continue
         if _authorized_p006_7_11_15_10_1_styling_architecture_successor(root, target_path):
             continue
