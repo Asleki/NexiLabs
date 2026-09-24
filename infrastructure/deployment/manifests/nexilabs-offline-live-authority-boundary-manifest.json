@@ -1,0 +1,55 @@
+{
+  "milestoneId": "PTB.11",
+  "milestoneName": "Offline Capability & Live Authority Trust Boundary",
+  "sourceLockCommit": "082b7e2016f9cc35188a54c7a413ae399f69a7b6",
+  "predecessorMilestone": "NEXILABS.PAB.1",
+  "maintenanceClassification": "SECURITY_COMPATIBILITY_MAINTENANCE_EXCEPTION",
+  "offlineCapability": {
+    "applicationShellAllowed": true,
+    "simulationAllowed": true,
+    "approvedStaticAssetsAllowed": true,
+    "genericLiveAuthorityCachingAllowed": false
+  },
+  "liveAuthority": {
+    "pathPrefixes": [
+      "/oauth2",
+      "/auth",
+      "/api/v1"
+    ],
+    "serviceWorkerCacheReadsAllowed": false,
+    "serviceWorkerCacheWritesAllowed": false,
+    "browserHttpCachePolicy": "no-store",
+    "offlineFallbackAllowed": false
+  },
+  "serviceWorker": {
+    "historicalFrontendWorkerImmutable": true,
+    "historicalFrontendWorkerPath": "frontend/sw.js",
+    "edgeWorkerRepositoryPath": "infrastructure/deployment/config/nexilabs-ptb11-sw.js",
+    "edgeWorkerDeploymentPath": "/usr/share/nexa/nexilabs-access/ptb11-sw.js",
+    "canonicalRequestPath": "/sw.js",
+    "preserveShellGeneration": "nexilabs-shell-v17",
+    "sanitizePreviouslyCachedAuthorityResponsesOnActivate": true,
+    "purgeWholeNexiLabsShell": false,
+    "unregisterAfterActivation": false
+  },
+  "edge": {
+    "developmentPrivateGoogleAdmissionUnchanged": true,
+    "productionAuthAuthorityUnchanged": true,
+    "infrastructureApiAuthorityUnchanged": true,
+    "serviceWorkerServedFromPwaUpstream": false,
+    "serviceWorkerServedFromGovernedEdgeAsset": true,
+    "serviceWorkerResponsePolicy": "no-cache, max-age=0",
+    "authorityResponsePolicy": "no-store"
+  },
+  "predecessorCompatibility": {
+    "historicalFrontendWorkerPreserved": true,
+    "historicalPrivateCleanupWorkerPreserved": true,
+    "historicalPab1ContractPreserved": true,
+    "historicalPrivateOfflineShellFalseRemainsHistoricalEvidence": true,
+    "ptb11OperationalPolicySupersedesDestructivePrivateWorker": true
+  },
+  "databaseChanges": false,
+  "apiContractChanges": false,
+  "roadmapMutationAllowed": false,
+  "privateAuthenticationMaterialMayEnterRepository": false
+}

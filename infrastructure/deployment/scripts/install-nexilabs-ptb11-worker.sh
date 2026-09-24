@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT=${1:-$(pwd)}
+DESTINATION=${2:-/usr/share/nexa/nexilabs-access/ptb11-sw.js}
+SOURCE="$ROOT/infrastructure/deployment/config/nexilabs-ptb11-sw.js"
+EXPECTED_SHA256="675fd23c3ef5f1a3b10ee867e0cd5778583c8761f59636a953f409c232d53324"
+
+[[ -f "$SOURCE" ]] || { echo "PTB.11 worker source missing: $SOURCE" >&2; exit 2; }
+ACTUAL_SHA256=$(sha256sum "$SOURCE" | awk '{print $1}')
+[[ "$ACTUAL_SHA256" == "$EXPECTED_SHA256" ]] || {
+    echo "PTB.11 worker checksum mismatch" >&2
+    exit 3
+}
+
+install -D -m 0644 "$SOURCE" "$DESTINATION"
+printf 'installed PTB.11 worker sha256=%s destination=%s\n' "$ACTUAL_SHA256" "$DESTINATION"

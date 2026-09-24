@@ -1,0 +1,47 @@
+__NEXILABS_PUBLIC_HOSTNAME__ {
+    encode zstd gzip
+
+    # PUBLIC removes the outer Google development allowlist. The old OAuth
+    # helper path is not application content and must never fall back to PWA.
+    handle /oauth2/* {
+        header Cache-Control "no-store"
+        respond "Not Found" 404
+    }
+
+    header X-NexiLabs-Access-Mode "PUBLIC"
+
+    # Publish the additive PTB.11 trust-aware worker at the canonical worker
+    # URL while keeping the locked frontend/sw.js predecessor byte-identical.
+    handle /sw.js {
+        root * /usr/share/nexa/nexilabs-access
+        rewrite * /ptb11-sw.js
+        header Cache-Control "no-cache, max-age=0"
+        header Service-Worker-Allowed "/"
+        file_server
+    }
+
+    handle /api/v1/* {
+        header Cache-Control "no-store"
+        reverse_proxy __NEXILABS_INFRASTRUCTURE_API_UPSTREAM__
+    }
+
+    handle /auth/* {
+        header Cache-Control "no-store"
+        reverse_proxy __NEXILABS_PRODUCTION_AUTH_UPSTREAM__
+    }
+
+    handle {
+        reverse_proxy __NEXILABS_PWA_UPSTREAM__
+    }
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "no-referrer"
+        X-Frame-Options "DENY"
+    }
+
+    log {
+        output file /var/log/caddy/nexilabs-access.log
+    }
+}

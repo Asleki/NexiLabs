@@ -1,0 +1,66 @@
+__NEXILABS_PUBLIC_HOSTNAME__ {
+    encode zstd gzip
+
+    # Google development-private admission remains live authority and is never
+    # an application-cache authority.
+    handle /oauth2/* {
+        header Cache-Control "no-store"
+        reverse_proxy 127.0.0.1:4180 {
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-Uri {uri}
+        }
+    }
+
+    # Every application route remains authenticated at the edge in
+    # DEVELOPMENT_PRIVATE. Offline shell availability never grants live edge
+    # admission when the network is available.
+    handle {
+        forward_auth 127.0.0.1:4180 {
+            uri /oauth2/auth
+            header_up X-Real-IP {remote_host}
+
+            @unauthorized status 401
+            handle_response @unauthorized {
+                redir * /oauth2/sign_in?rd={scheme}://{host}{uri}
+            }
+        }
+
+        header X-NexiLabs-Access-Mode "DEVELOPMENT_PRIVATE"
+
+        # PTB.11 deliberately leaves the historical frontend/sw.js predecessor
+        # immutable. The edge publishes the reviewed trust-aware successor at
+        # the canonical /sw.js URL used by the installed PWA.
+        handle /sw.js {
+            root * /usr/share/nexa/nexilabs-access
+            rewrite * /ptb11-sw.js
+            header Cache-Control "no-cache, max-age=0"
+            header Service-Worker-Allowed "/"
+            file_server
+        }
+
+        handle /api/v1/* {
+            header Cache-Control "no-store"
+            reverse_proxy __NEXILABS_INFRASTRUCTURE_API_UPSTREAM__
+        }
+
+        handle /auth/* {
+            header Cache-Control "no-store"
+            reverse_proxy __NEXILABS_PRODUCTION_AUTH_UPSTREAM__
+        }
+
+        handle {
+            reverse_proxy __NEXILABS_PWA_UPSTREAM__
+        }
+    }
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "no-referrer"
+        X-Frame-Options "DENY"
+    }
+
+    log {
+        output file /var/log/caddy/nexilabs-access.log
+    }
+}
