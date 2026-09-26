@@ -617,6 +617,55 @@ def _authorized_p006_ui_10_4_frontend_access_successor(
     )
 
 
+# P006.UI.10.4 correction — exact reviewed full-view Admin UX, footer
+# Service Worker status replay, and PTB.11 same-generation convergence
+# successors. Historical P006.UI.10.4 hashes above remain immutable.
+P006_UI_10_4_UX_PWA_CORRECTION_SUCCESSOR_SHA256 = {
+    "frontend/src/app/auth/admin-authentication-experience.js": "01983f09fee3ab2466ccde142b80e84e221a1afe4ec15fe8fe4614bcc3bb603a",
+    "frontend/src/app/shell/partial-loader.js": "e20b84f3a1e133face97278bf061376c8de80ac2e92b8ee3d0a211760d429f0b",
+    "frontend/src/pwa/service-worker-registration.js": "da683aa904b5a5e1214ed38e3462655401568022d2b856fc42ec6aa7cf4f4da9",
+    "frontend/src/ui/pages/admin-login.js": "878e02b11442422f9d815738ed31b7e1c6178521f9ead26a4d236a95581d7d3a",
+    "frontend/src/ui/pages/admin-workspace.js": "c2dc14b2298edeea40eb567d520ea2323f7eb70a20d8ecde17e92359c1ea6957",
+    "frontend/src/ui/pages/production-developer-workspace.js": "e8838ee64a484549896a84ead87e068a0cd4a7982352d6d058131e4f610c74e4",
+    "frontend/styles/app.css": "13cfb4c8bebb3d0248965faec0d76ce0110e3b0020edd8378a39e3c9324b7bb4",
+    "frontend/tests/app/shell/partial-loader.test.mjs": "91b98f52d391333f1603f6f249a2779371839e34834c8688fcfad0b808cf3109",
+    "frontend/tests/auth/p006-ui-10-4-admin-authentication-experience.test.mjs": "9399e8cdc13c6a6d16fef5c1fef2d48c6a9024e9295ce4a373599166be423b9c",
+    "frontend/tests/auth/p006-ui-10-4-admin-workspace.test.mjs": "28a61f1ed465b6409144a864359d2e3f8cefe191570cce1917ff87168365182d",
+    "frontend/tests/ptb11-offline-live-authority-boundary.test.mjs": "fc1d7f0e381b750451ecd8b30bcc15491947d8d1a14bed7c4870cd5068833bc0",
+    "frontend/tests/service-worker-registration.test.mjs": "041619541813a8fa359b139784aad73838b5f652dbdd870c0edb9874e795e553",
+    "infrastructure/deployment/config/nexilabs-ptb11-sw.js": "03478fc7e9f7f7650dbe56779e8944c7fab029b7b3fdb2a5db4186d009f45e7e",
+    "infrastructure/deployment/scripts/install-nexilabs-ptb11-worker.sh": "8e9cd80231fbe9f72b66ea95855813ff020a550c4ce15d6e7fea930575356392",
+    "infrastructure/tests/contract/test_nexilabs_ptb11_offline_live_authority_boundary.py": "8a72cdca75066318ea079ecfcb0d2cd29db661d7f79236f1e5af4a6e50dd7b32",
+}
+P006_UI_10_4_UX_PWA_CORRECTION_PROOF_FILES = (
+    "frontend/tests/auth/p006-ui-10-4-admin-authentication-experience.test.mjs",
+    "frontend/tests/auth/p006-ui-10-4-admin-workspace.test.mjs",
+    "frontend/tests/app/shell/partial-loader.test.mjs",
+    "frontend/tests/service-worker-registration.test.mjs",
+    "frontend/tests/ptb11-offline-live-authority-boundary.test.mjs",
+    "infrastructure/tests/contract/test_nexilabs_ptb11_offline_live_authority_boundary.py",
+)
+
+
+def _authorized_p006_ui_10_4_ux_pwa_correction_successor(
+    root: Path,
+    target_path: str,
+) -> bool:
+    expected = P006_UI_10_4_UX_PWA_CORRECTION_SUCCESSOR_SHA256.get(target_path)
+    if expected is None:
+        return False
+    if not all(
+        (root / proof).is_file()
+        for proof in P006_UI_10_4_UX_PWA_CORRECTION_PROOF_FILES
+    ):
+        return False
+    candidate = root / target_path
+    return (
+        candidate.is_file()
+        and sha256(candidate.read_bytes()).hexdigest() == expected
+    )
+
+
 # NEXILABS.RI.2 — exact repository-presentation successor.
 # README.md is repository presentation/documentation rather than a Production
 # runtime or roadmap authority. This seam authorizes only the reviewed RI.2
@@ -732,6 +781,8 @@ def test_phase_b_e_does_not_modify_locked_production_or_roadmap_files():
         if _authorized_p006_ui_10_3_layered_admin_composition_successor(root, target_path):
             continue
         if _authorized_p006_ui_10_4_frontend_access_successor(root, target_path):
+            continue
+        if _authorized_p006_ui_10_4_ux_pwa_correction_successor(root, target_path):
             continue
         if _authorized_nexilabs_ri_2_repository_presentation_successor(root, target_path):
             continue

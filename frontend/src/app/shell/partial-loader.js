@@ -60,6 +60,14 @@ export async function loadPartial({
   slot.innerHTML = await response.text();
   slot.dataset.partialReady = "true";
   delete slot.dataset.partialError;
+
+  // Shell chrome can mount after independent runtime state has already settled.
+  // Announce every successful partial insertion so state owners can replay
+  // their current presentation into newly-created header/footer elements.
+  if (typeof Event === "function") {
+    documentRef.dispatchEvent?.(new Event("nexilabs:shell-partial-loaded"));
+  }
+
   return Object.freeze({ slot: descriptor.slot, url: descriptor.url, ready: true });
 }
 

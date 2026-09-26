@@ -8,7 +8,7 @@ HISTORICAL_FRONTEND_SW_SHA256 = (
     "7fb8964ddbb9efe64948eb842dd6534f5b6cba2bd8caf87ed56d914064bda84d"
 )
 PTB11_EDGE_SW_SHA256 = (
-    "25b5d67499bcd1a9ddef13492788348e8dbedc13c4cdd0d231fb543f46334a4e"
+    "03478fc7e9f7f7650dbe56779e8944c7fab029b7b3fdb2a5db4186d009f45e7e"
 )
 
 
@@ -59,6 +59,8 @@ def test_ptb11_preserves_frontend_worker_and_adds_exact_edge_worker():
     assert 'CACHE_NAME = "nexilabs-shell-v17"' in successor
     assert "nexilabs-refresh-p006-ui-10-4-r2" in successor
     assert "FRONTEND_ACCESS_INTEGRATION_PATHS" in successor
+    assert '"/src/ui/pages/admin-login.js"' in successor
+    assert '"/src/ui/pages/production-developer-workspace.js"' in successor
 
 
 def test_private_ptb11_template_preserves_google_gate_and_serves_governed_worker():

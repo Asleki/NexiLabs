@@ -675,3 +675,65 @@ h2 { font-size: clamp(1.25rem, 4vw, 2rem); }
 @media (max-width: 44rem) {
   .nngla-status-heading { align-items: flex-start; }
 }
+
+
+/* P006.UI.10.4 — full-view Admin access and workspace action presentation. */
+.workspace-heading-with-actions {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: clamp(1rem, 4vw, 2rem);
+}
+.workspace-heading-copy { min-width: 0; display: grid; gap: .2rem; }
+.workspace-heading-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .65rem; }
+.admin-access-button { white-space: nowrap; }
+.admin-auth-page { width: min(100%, 42rem); }
+.admin-bound-identity {
+  display: grid;
+  gap: .35rem;
+  margin-top: 1.5rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 35%, var(--app-border));
+  border-radius: .85rem;
+  background: color-mix(in srgb, var(--app-surface) 88%, transparent);
+}
+.admin-bound-identity span {
+  color: var(--app-muted);
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.admin-bound-identity strong { overflow-wrap: anywhere; color: var(--app-text); }
+.admin-enigma-challenge { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.auth-page-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+.workspace-terminal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: .5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--app-border);
+}
+.workspace-signout-button {
+  min-height: 3rem;
+  padding: .7rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 42%, var(--app-border));
+  border-radius: .7rem;
+  background: color-mix(in srgb, var(--app-surface) 82%, transparent);
+  color: var(--app-text);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.workspace-signout-button:hover {
+  border-color: color-mix(in srgb, var(--app-accent) 72%, var(--app-border));
+  background: color-mix(in srgb, var(--app-accent) 12%, var(--app-surface));
+}
+.admin-signout-button { margin-top: 2rem; }
+@media (max-width: 44rem) {
+  .workspace-heading-with-actions { grid-template-columns: 1fr; }
+  .workspace-heading-actions { justify-content: flex-start; }
+  .admin-enigma-challenge { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .45rem; }
+  .admin-enigma-challenge strong { min-width: 0; min-height: 3.75rem; font-size: clamp(.9rem, 4.6vw, 1.25rem); }
+  .workspace-terminal-actions { justify-content: stretch; }
+  .workspace-signout-button { width: 100%; }
+}

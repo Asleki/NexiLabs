@@ -20,6 +20,8 @@ test("Admin Workspace is elevation-guarded and exposes all six required sections
   assert.equal(adminWorkspaceMarkup({ elevation: null }), "");
   const html = adminWorkspaceMarkup({ elevation });
   assert.match(html, /Admin Workspace/);
+  assert.match(html, /class="workspace-page admin-workspace-page"/);
+  assert.match(html, /data-auth-action="logout">Sign out/);
   for (const section of Object.values(AdminWorkspaceSection)) {
     assert.match(html, new RegExp(`data-admin-workspace-section="${section}"`));
   }

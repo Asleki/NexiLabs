@@ -59,6 +59,19 @@ P006_UI_10_4_REVIEWED_SUCCESSOR_SHA256 = {
         "fed0416569772d4e781ad4865b94548ae3b919f518853e64fbf712353f12f786",
 }
 
+# P006.UI.10.4 reviewed UX/PWA correction successor. The committed .10.4
+# hash remains the HEAD anchor; this value qualifies only the current
+# correction candidate for the operational governance lock.
+P006_UI_10_4_UX_PWA_CORRECTION_REVIEWED_SUCCESSOR_SHA256 = {
+    "tests/registries/nngla/test_p006_7_11_7_20_operational_backend_lock.py":
+        "be123a868dedbba8048143bc0c89597e6a9acc2965d4e26175ea2b25a29db14c",
+    "tests/registries/nngla/test_p006_7_11_15_10_1_2_request_scoped_materialization_lock_qualification.py":
+        "d3c2eed28301e255dc34bb084f029ae41d4bd82af82496fa50e5f65be838ff34",
+    "tests/registries/nngla/test_p006_7_11_15_10_1_3_unified_environmental_composition_lock_qualification.py":
+        "24ab1c5bb762412351b2c6adfcd6f14c035e5fed3af21ad363e8c681e34ac591",
+}
+
+
 
 IMMUTABLE_PREDECESSOR_PATHS = (
     "frontend/src/main.js",
@@ -152,10 +165,20 @@ def test_d62c5c1_known_strict_hash_predecessors_are_still_exact() -> None:
             assert ri_2_bytes is not None, path
             assert sha256(ri_2_bytes).hexdigest() == ri_2, path
 
-            assert sha256(head).hexdigest() == ri_2, path
+            p006_ui_10_4_correction = (
+                P006_UI_10_4_UX_PWA_CORRECTION_REVIEWED_SUCCESSOR_SHA256.get(path)
+            )
             if p006_ui_10_4 is not None:
-                assert sha256(candidate.read_bytes()).hexdigest() == p006_ui_10_4, path
+                # P006.UI.10.4 is committed at HEAD; RI.2 remains verified
+                # historical provenance rather than the current HEAD anchor.
+                assert sha256(head).hexdigest() == p006_ui_10_4, path
+                expected_candidate = p006_ui_10_4_correction or p006_ui_10_4
+                assert (
+                    sha256(candidate.read_bytes()).hexdigest()
+                    == expected_candidate
+                ), path
             else:
+                assert sha256(head).hexdigest() == ri_2, path
                 assert sha256(candidate.read_bytes()).hexdigest() == ri_2, path
         elif p006_ui_10_3 is not None:
             assert sha256(head).hexdigest() == p006_ui_10_3, path
@@ -196,10 +219,20 @@ def test_all_locked_auth_pwa_strict_tests_and_roadmaps_are_byte_identical_to_hea
             assert ri_2_bytes is not None, path
             assert sha256(ri_2_bytes).hexdigest() == ri_2, path
 
-            assert sha256(head).hexdigest() == ri_2, path
+            p006_ui_10_4_correction = (
+                P006_UI_10_4_UX_PWA_CORRECTION_REVIEWED_SUCCESSOR_SHA256.get(path)
+            )
             if p006_ui_10_4 is not None:
-                assert sha256(candidate.read_bytes()).hexdigest() == p006_ui_10_4, path
+                # P006.UI.10.4 is committed at HEAD; RI.2 remains verified
+                # historical provenance rather than the current HEAD anchor.
+                assert sha256(head).hexdigest() == p006_ui_10_4, path
+                expected_candidate = p006_ui_10_4_correction or p006_ui_10_4
+                assert (
+                    sha256(candidate.read_bytes()).hexdigest()
+                    == expected_candidate
+                ), path
             else:
+                assert sha256(head).hexdigest() == ri_2, path
                 assert sha256(candidate.read_bytes()).hexdigest() == ri_2, path
             continue
 

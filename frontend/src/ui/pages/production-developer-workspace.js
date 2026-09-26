@@ -19,10 +19,13 @@ function capabilityCard(item) {
 export function productionDeveloperWorkspaceMarkup(session) {
   return `
     <section class="workspace-page" aria-labelledby="developer-workspace-title">
-      <header class="workspace-heading">
-        <p class="eyebrow">Production · NexaDevs</p>
-        <h1 id="developer-workspace-title">Production Developer Workspace</h1>
-        <p class="summary">Governed supervision and production-system access. This is not a raw PostgreSQL administration console.</p>
+      <header class="workspace-heading workspace-heading-with-actions">
+        <div class="workspace-heading-copy">
+          <p class="eyebrow">Production · NexaDevs</p>
+          <h1 id="developer-workspace-title">Production Developer Workspace</h1>
+          <p class="summary">Governed supervision and production-system access. This is not a raw PostgreSQL administration console.</p>
+        </div>
+        <div class="workspace-heading-actions" data-role="developer-admin-actions" aria-label="Developer workspace actions"></div>
       </header>
 
       <section class="workspace-section" aria-labelledby="developer-systems-title">
@@ -50,6 +53,8 @@ export function productionDeveloperWorkspaceMarkup(session) {
         </dl>
       </section>
 
-      <button class="primary-button" type="button" data-auth-action="logout">Sign out</button>
+      <div class="workspace-terminal-actions">
+        <button class="workspace-signout-button" type="button" data-auth-action="logout">Sign out</button>
+      </div>
     </section>`;
 }

@@ -133,9 +133,16 @@ export function adminWorkspaceMarkup({
   if (!elevation) return "";
   const section = Object.values(AdminWorkspaceSection).includes(activeSection) ? activeSection : AdminWorkspaceSection.OVERVIEW;
   const view = reviewView?.status === reviewStatus ? reviewView : createUnavailableAdminReviewView(reviewStatus);
-  return `<section class="workspace-section" data-role="admin-auth-boundary" data-admin-elevated="true" aria-labelledby="admin-workspace-title">
-    <header class="workspace-heading"><p class="eyebrow">Production · Elevated Admin</p><h2 id="admin-workspace-title">Admin Workspace</h2><p class="summary">Developer identity remains authenticated beneath this separately elevated Admin context.</p></header>
+  return `<section class="workspace-page admin-workspace-page" data-role="admin-auth-boundary" data-admin-elevated="true" aria-labelledby="admin-workspace-title">
+    <header class="workspace-heading">
+      <p class="eyebrow">Production · Elevated Admin</p>
+      <h1 id="admin-workspace-title">Admin Workspace</h1>
+      <p class="summary">Developer identity remains authenticated beneath this separately elevated Admin context.</p>
+    </header>
     ${nav(section)}
     ${panel(section, elevation, view)}
+    <div class="workspace-terminal-actions">
+      <button class="workspace-signout-button" type="button" data-auth-action="logout">Sign out</button>
+    </div>
   </section>`;
 }

@@ -177,8 +177,10 @@ test("P006.UI.10.4 frontend access integration has an explicit same-generation r
     "/src/app/auth/admin-authentication-experience.js",
     "/src/app/auth/production-auth-client-p006-ui-10-4.js",
     "/src/app/auth/runtime-auth-client.js",
+    "/src/ui/pages/admin-login.js",
     "/src/ui/pages/admin-workspace.js",
     "/src/ui/pages/developer-account-enrollment-p006-ui-10-4.js",
+    "/src/ui/pages/production-developer-workspace.js",
   ]) {
     assert.ok(source.includes(`"${path}"`), path);
   }

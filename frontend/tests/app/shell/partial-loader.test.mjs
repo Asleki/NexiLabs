@@ -22,3 +22,24 @@ test("Bundle 12.0C bounds a stalled partial fetch instead of leaving the applica
   );
   assert.notEqual(slot.dataset.partialReady, "true");
 });
+
+test("successful partial insertion announces shell chrome availability", async () => {
+  const slot = { innerHTML: "", dataset: {} };
+  const events = [];
+  const documentRef = {
+    querySelector: () => slot,
+    dispatchEvent(event) { events.push(event.type); return true; },
+  };
+  const fetchRef = async () => ({
+    ok: true,
+    async text() { return "<footer>Shared</footer>"; },
+  });
+
+  await loadPartial({
+    documentRef,
+    fetchRef,
+    descriptor: ShellPartial.FOOTER,
+  });
+
+  assert.deepEqual(events, ["nexilabs:shell-partial-loaded"]);
+});

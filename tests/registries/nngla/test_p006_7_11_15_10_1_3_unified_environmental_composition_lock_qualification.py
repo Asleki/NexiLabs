@@ -63,6 +63,13 @@ EXPECTED_P006_UI_10_4_REQUEST_GOVERNANCE_QUALIFICATION_SHA256 = (
     "c05359f5d5243c1b5d5f7c1b78004652f9acaae0c92bf84099e46db59a0ff9fc"
 )
 
+# P006.UI.10.4 UX/PWA correction successor. The committed .10.4 hash above
+# remains immutable historical evidence; this is the exact reviewed R2
+# request-governance successor introduced by the current correction chain.
+EXPECTED_P006_UI_10_4_UX_PWA_CORRECTION_REQUEST_GOVERNANCE_QUALIFICATION_SHA256 = (
+    "d3c2eed28301e255dc34bb084f029ae41d4bd82af82496fa50e5f65be838ff34"
+)
+
 
 EXPECTED_15_10_1_HISTORICAL_TEST_SUCCESSORS = {
     "frontend/tests/integration/p006_7_11_15_10_map-first-css-contract.test.mjs":
@@ -228,8 +235,12 @@ def test_historical_successor_evidence_remains_present_and_distinct():
     assert EXPECTED_P006_UI_10_4_REQUEST_GOVERNANCE_QUALIFICATION_SHA256 == (
         "c05359f5d5243c1b5d5f7c1b78004652f9acaae0c92bf84099e46db59a0ff9fc"
     )
+    assert (
+        EXPECTED_P006_UI_10_4_UX_PWA_CORRECTION_REQUEST_GOVERNANCE_QUALIFICATION_SHA256
+        == "d3c2eed28301e255dc34bb084f029ae41d4bd82af82496fa50e5f65be838ff34"
+    )
     assert sha256(predecessor_qualification.read_bytes()).hexdigest() == (
-        EXPECTED_P006_UI_10_4_REQUEST_GOVERNANCE_QUALIFICATION_SHA256
+        EXPECTED_P006_UI_10_4_UX_PWA_CORRECTION_REQUEST_GOVERNANCE_QUALIFICATION_SHA256
     )
     predecessor_text = predecessor_qualification.read_text(encoding="utf-8")
     assert "EXPECTED_GOVERNANCE_SUCCESSORS" in predecessor_text

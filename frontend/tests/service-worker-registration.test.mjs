@@ -129,3 +129,38 @@ test("P006.UI.16 browser registration generation is derived from the current cac
   assert.equal(PWA_SHELL_GENERATION, PWA_CACHE_VERSION);
   assert.equal(PWA_SHELL_GENERATION, "nexilabs-shell-v17");
 });
+
+test("late-mounted footer replays the already-settled Service Worker status", async () => {
+  let statusNodes = [];
+  const registration = eventTarget({ waiting: null, installing: null, async update() {} });
+  const serviceWorker = eventTarget({
+    controller: {},
+    async register() { return registration; },
+  });
+  const documentRef = eventTarget({
+    documentElement: { dataset: {} },
+    visibilityState: "visible",
+    querySelectorAll() { return statusNodes; },
+  });
+  const windowRef = eventTarget({ dispatchEvent() {} });
+
+  const receipt = await registerServiceWorker({
+    navigatorRef: { serviceWorker },
+    documentRef,
+    windowRef,
+  });
+
+  assert.equal(receipt.status, ServiceWorkerStatus.REGISTERED);
+
+  const footerStatus = {
+    textContent: "registering",
+    dataset: { pwaStatus: "REGISTERING" },
+  };
+  statusNodes = [footerStatus];
+
+  documentRef.dispatch("nexilabs:shell-partial-loaded");
+
+  assert.equal(footerStatus.dataset.pwaStatus, ServiceWorkerStatus.REGISTERED);
+  assert.equal(footerStatus.textContent, "registered");
+  receipt.dispose();
+});

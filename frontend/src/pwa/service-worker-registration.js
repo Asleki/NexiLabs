@@ -34,15 +34,28 @@ export async function registerServiceWorker({
   now = () => Date.now(),
 } = {}) {
   exposeGeneration(documentRef);
+
+  let status = ServiceWorkerStatus.REGISTERING;
+  const onShellPartialLoaded = () => renderStatus(documentRef, status);
+  documentRef?.addEventListener?.("nexilabs:shell-partial-loaded", onShellPartialLoaded);
+
   if (!navigatorRef?.serviceWorker?.register) {
-    renderStatus(documentRef, ServiceWorkerStatus.UNSUPPORTED);
-    return Object.freeze({ supported: false, status: ServiceWorkerStatus.UNSUPPORTED, registration: null });
+    status = ServiceWorkerStatus.UNSUPPORTED;
+    renderStatus(documentRef, status);
+    return Object.freeze({
+      supported: false,
+      status,
+      registration: null,
+      dispose() {
+        documentRef?.removeEventListener?.("nexilabs:shell-partial-loaded", onShellPartialLoaded);
+      },
+    });
   }
 
-  renderStatus(documentRef, ServiceWorkerStatus.REGISTERING);
+  renderStatus(documentRef, status);
   try {
     const registration = await navigatorRef.serviceWorker.register(scriptUrl, { scope, updateViaCache: "none" });
-    let status = registration.waiting ? ServiceWorkerStatus.UPDATE_READY : ServiceWorkerStatus.REGISTERED;
+    status = registration.waiting ? ServiceWorkerStatus.UPDATE_READY : ServiceWorkerStatus.REGISTERED;
     let lastUpdateCheckAt = 0;
     let disposed = false;
     let activationRequestedFor = null;
@@ -122,12 +135,22 @@ export async function registerServiceWorker({
         if (disposed) return;
         disposed = true;
         documentRef?.removeEventListener?.("visibilitychange", onVisibilityChange);
+        documentRef?.removeEventListener?.("nexilabs:shell-partial-loaded", onShellPartialLoaded);
         windowRef?.removeEventListener?.("pageshow", onPageShow);
         navigatorRef.serviceWorker.removeEventListener?.("controllerchange", onControllerChange);
       }
     });
   } catch (error) {
-    renderStatus(documentRef, ServiceWorkerStatus.FAILED);
-    return Object.freeze({ supported: true, status: ServiceWorkerStatus.FAILED, registration: null, error });
+    status = ServiceWorkerStatus.FAILED;
+    renderStatus(documentRef, status);
+    return Object.freeze({
+      supported: true,
+      status,
+      registration: null,
+      error,
+      dispose() {
+        documentRef?.removeEventListener?.("nexilabs:shell-partial-loaded", onShellPartialLoaded);
+      },
+    });
   }
 }

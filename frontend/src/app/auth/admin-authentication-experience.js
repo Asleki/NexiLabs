@@ -1,8 +1,16 @@
-/** P006.UI.10.4 — Conditional Admin elevation and guarded Admin Workspace. */
+/** P006.UI.10.4 — Full-view Admin elevation inside an authenticated Production Developer session. */
+import { ApplicationRoute } from "../navigation/application-route.js";
 import { createProductionAuthClient } from "./production-auth-client-p006-ui-10-4.js";
 import { adminEnigmaMarkup, adminLoginMarkup } from "../../ui/pages/admin-login.js";
 import { adminWorkspaceMarkup, AdminWorkspaceSection } from "../../ui/pages/admin-workspace.js";
 import { AdminReviewStatus } from "../admin/admin-review-view-model.js";
+
+export const AdminPresentation = Object.freeze({
+  DEVELOPER: "developer",
+  CREDENTIALS: "credentials",
+  ENIGMA: "enigma",
+  WORKSPACE: "workspace",
+});
 
 function formValue(form, name) {
   return String(new FormData(form).get(name) || "").trim();
@@ -15,84 +23,125 @@ export function installAdminAuthenticationExperience({
   client = createProductionAuthClient({ windowRef }),
 } = {}) {
   if (!authentication?.context) throw new TypeError("authentication context is required");
+
   let eligibility = null;
   let adminAttempt = null;
   let elevation = null;
+  let presentation = AdminPresentation.DEVELOPER;
   let activeSection = AdminWorkspaceSection.OVERVIEW;
   let reviewStatus = AdminReviewStatus.PENDING;
   let refreshGeneration = 0;
   let observer = null;
   let expiryTimer = null;
 
-  const boundary = () => documentRef.querySelector?.("[data-role='admin-auth-boundary']");
-  const workspace = () => documentRef.querySelector?.(".workspace-page");
-  const target = documentRef.querySelector?.("[data-role='application-page']");
+  const outlet = () => documentRef.querySelector?.("[data-role='application-page']");
+  const applicationRoot = () => documentRef.querySelector?.("#nexilabs-app");
+  const developerAdminActions = () => documentRef.querySelector?.("[data-role='developer-admin-actions']");
 
-  const observe = () => observer?.observe?.(target, { childList: true, subtree: true });
+  const observe = () => observer?.observe?.(outlet(), { childList: true, subtree: true });
   const mutatePresentation = (operation) => {
     observer?.disconnect?.();
     try { operation(); } finally { observe(); }
   };
+
   const clearExpiryTimer = () => {
     if (expiryTimer !== null) {
       windowRef?.clearTimeout?.(expiryTimer);
       expiryTimer = null;
     }
   };
-  const resetAdminPresentationState = () => {
+
+  const resetWorkspaceState = () => {
     activeSection = AdminWorkspaceSection.OVERVIEW;
     reviewStatus = AdminReviewStatus.PENDING;
   };
-  const removeBoundary = () => mutatePresentation(() => boundary()?.remove?.());
+
+  const developerSession = () => {
+    const session = authentication.context.session;
+    return session?.sessionId
+      && session.identityType === "nexadevs_developer"
+      && session.runtime === "production"
+      ? session
+      : null;
+  };
+
+  const onDeveloperRoute = () =>
+    applicationRoot()?.dataset?.applicationRoute === ApplicationRoute.PRODUCTION_DEVELOPER;
+
+  const developerActionMarkup = () => {
+    if (!eligibility?.eligible) return "";
+    const label = elevation ? "Admin Workspace" : "Admin Access";
+    return `<button class="workspace-action admin-access-button" type="button" data-admin-auth-action="enter">${label}</button>`;
+  };
+
+  const decorateDeveloperWorkspace = () => {
+    const actions = developerAdminActions();
+    if (actions) actions.innerHTML = developerActionMarkup();
+  };
+
+  const renderDeveloperWorkspace = () => {
+    presentation = AdminPresentation.DEVELOPER;
+    mutatePresentation(() => {
+      authentication.render?.(ApplicationRoute.PRODUCTION_DEVELOPER);
+      decorateDeveloperWorkspace();
+    });
+  };
 
   const scheduleExpiry = () => {
     clearExpiryTimer();
     if (!elevation?.expiresAt || !windowRef?.setTimeout) return;
     const delay = Math.max(0, Date.parse(elevation.expiresAt) - Date.now());
     expiryTimer = windowRef.setTimeout(async () => {
-      const session = authentication.context.session;
+      const session = developerSession();
       const current = elevation;
       elevation = null;
       adminAttempt = null;
-      resetAdminPresentationState();
-      renderBoundary();
+      resetWorkspaceState();
+      renderDeveloperWorkspace();
       if (session?.sessionId && current?.elevationId) {
-        try { await client.revokeAdminElevation(session.sessionId, current.elevationId); } catch { /* expiry is still local */ }
+        try { await client.revokeAdminElevation(session.sessionId, current.elevationId); }
+        catch { /* expiry remains local even if live revocation is unavailable */ }
       }
     }, Math.min(delay, 2_147_000_000));
   };
 
-  const renderBoundary = ({ error = "" } = {}) => {
-    const root = workspace();
-    if (!root || !eligibility?.eligible) {
+  const renderAdminPresentation = ({ error = "" } = {}) => {
+    const session = developerSession();
+    const target = outlet();
+    if (!session || !target || !eligibility?.eligible || !onDeveloperRoute()) {
       clearExpiryTimer();
-      removeBoundary();
-      return;
+      return false;
     }
-    const markup = elevation
+    if (presentation === AdminPresentation.DEVELOPER) {
+      mutatePresentation(decorateDeveloperWorkspace);
+      clearExpiryTimer();
+      return true;
+    }
+    const markup = presentation === AdminPresentation.WORKSPACE && elevation
       ? adminWorkspaceMarkup({ elevation, activeSection, reviewStatus })
-      : adminAttempt
+      : presentation === AdminPresentation.ENIGMA && adminAttempt
         ? adminEnigmaMarkup({ challenge: adminAttempt.challenge, error })
         : adminLoginMarkup({ eligibility, error });
-    mutatePresentation(() => {
-      const existing = boundary();
-      if (existing) existing.outerHTML = markup;
-      else root.insertAdjacentHTML?.("beforeend", markup);
-    });
-    if (elevation) scheduleExpiry();
+    mutatePresentation(() => { target.innerHTML = markup; });
+    if (presentation === AdminPresentation.WORKSPACE && elevation) scheduleExpiry();
     else clearExpiryTimer();
+    return true;
+  };
+
+  const clearAdminState = () => {
+    eligibility = null;
+    adminAttempt = null;
+    elevation = null;
+    presentation = AdminPresentation.DEVELOPER;
+    resetWorkspaceState();
+    clearExpiryTimer();
   };
 
   const refresh = async () => {
     const generation = ++refreshGeneration;
-    const session = authentication.context.session;
-    if (!session?.sessionId || session.identityType !== "nexadevs_developer" || session.runtime !== "production") {
-      eligibility = null;
-      adminAttempt = null;
-      elevation = null;
-      resetAdminPresentationState();
-      clearExpiryTimer();
-      removeBoundary();
+    const session = developerSession();
+    if (!session) {
+      clearAdminState();
       return null;
     }
     try {
@@ -102,18 +151,16 @@ export function installAdminAuthenticationExperience({
       if (!eligibility.eligible) {
         adminAttempt = null;
         elevation = null;
-        resetAdminPresentationState();
+        presentation = AdminPresentation.DEVELOPER;
+        resetWorkspaceState();
+        clearExpiryTimer();
       }
-      renderBoundary();
+      if (onDeveloperRoute()) renderAdminPresentation();
       return eligibility;
     } catch {
       if (generation !== refreshGeneration) return null;
-      eligibility = null;
-      adminAttempt = null;
-      elevation = null;
-      resetAdminPresentationState();
-      clearExpiryTimer();
-      removeBoundary();
+      clearAdminState();
+      if (onDeveloperRoute()) mutatePresentation(decorateDeveloperWorkspace);
       return null;
     }
   };
@@ -124,11 +171,11 @@ export function installAdminAuthenticationExperience({
     const reviewForm = event.target?.closest?.("[data-admin-review-decision-form]");
     if (reviewForm) {
       event.preventDefault();
-      return; // Review persistence authority is deliberately deferred.
+      return;
     }
     if (!credentialForm && !enigmaForm) return;
     event.preventDefault();
-    const session = authentication.context.session;
+    const session = developerSession();
     if (!session?.sessionId) return;
 
     if (credentialForm) {
@@ -139,13 +186,15 @@ export function installAdminAuthenticationExperience({
         });
         adminAttempt = { attemptId: payload.attemptId, challenge: payload.challenge };
         elevation = null;
-        resetAdminPresentationState();
-        renderBoundary();
+        presentation = AdminPresentation.ENIGMA;
+        resetWorkspaceState();
+        renderAdminPresentation();
       } catch (error) {
         adminAttempt = null;
         elevation = null;
-        resetAdminPresentationState();
-        renderBoundary({ error: error?.message || "Admin login failed." });
+        presentation = AdminPresentation.CREDENTIALS;
+        resetWorkspaceState();
+        renderAdminPresentation({ error: error?.message || "Admin login failed." });
       }
       return;
     }
@@ -158,57 +207,78 @@ export function installAdminAuthenticationExperience({
         });
         adminAttempt = null;
         elevation = payload.elevation;
-        resetAdminPresentationState();
-        renderBoundary();
+        presentation = AdminPresentation.WORKSPACE;
+        resetWorkspaceState();
+        renderAdminPresentation();
       } catch (error) {
-        renderBoundary({ error: error?.message || "Admin Enigma verification failed." });
+        presentation = AdminPresentation.ENIGMA;
+        renderAdminPresentation({ error: error?.message || "Admin Enigma verification failed." });
       }
     }
   };
 
   const onClick = async (event) => {
-    if (elevation) {
+    const enter = event.target?.closest?.("[data-admin-auth-action='enter']");
+    if (enter && eligibility?.eligible) {
+      presentation = elevation ? AdminPresentation.WORKSPACE : AdminPresentation.CREDENTIALS;
+      renderAdminPresentation();
+      return;
+    }
+
+    const backDeveloper = event.target?.closest?.("[data-admin-auth-action='back-developer']");
+    if (backDeveloper) {
+      adminAttempt = null;
+      presentation = AdminPresentation.DEVELOPER;
+      renderDeveloperWorkspace();
+      return;
+    }
+
+    const backCredentials = event.target?.closest?.("[data-admin-auth-action='back-credentials']");
+    if (backCredentials) {
+      adminAttempt = null;
+      presentation = AdminPresentation.CREDENTIALS;
+      renderAdminPresentation();
+      return;
+    }
+
+    if (presentation === AdminPresentation.WORKSPACE && elevation) {
       const sectionTarget = event.target?.closest?.("[data-admin-workspace-section]");
       if (sectionTarget && Object.values(AdminWorkspaceSection).includes(sectionTarget.dataset.adminWorkspaceSection)) {
         activeSection = sectionTarget.dataset.adminWorkspaceSection;
-        renderBoundary();
+        renderAdminPresentation();
         return;
       }
       const statusTarget = event.target?.closest?.("[data-admin-review-status]");
       if (statusTarget && Object.values(AdminReviewStatus).includes(statusTarget.dataset.adminReviewStatus)) {
         activeSection = AdminWorkspaceSection.REVIEWS;
         reviewStatus = statusTarget.dataset.adminReviewStatus;
-        renderBoundary();
+        renderAdminPresentation();
         return;
       }
       if (event.target?.closest?.("[data-admin-review-decision]")) {
         event.preventDefault?.();
-        return; // Never fabricate a persisted decision.
+        return;
       }
     }
 
     const revoke = event.target?.closest?.("[data-admin-auth-action='revoke']");
     if (revoke) {
-      const session = authentication.context.session;
+      const session = developerSession();
       const current = elevation;
       elevation = null;
       adminAttempt = null;
-      resetAdminPresentationState();
+      presentation = AdminPresentation.DEVELOPER;
+      resetWorkspaceState();
       clearExpiryTimer();
-      renderBoundary();
+      renderDeveloperWorkspace();
       if (session?.sessionId && current?.elevationId) {
-        try { await client.revokeAdminElevation(session.sessionId, current.elevationId); } catch { /* local elevation is still cleared */ }
+        try { await client.revokeAdminElevation(session.sessionId, current.elevationId); }
+        catch { /* local elevation is still cleared */ }
       }
       return;
     }
-    if (event.target?.closest?.("[data-auth-action='logout']")) {
-      eligibility = null;
-      adminAttempt = null;
-      elevation = null;
-      resetAdminPresentationState();
-      clearExpiryTimer();
-      removeBoundary();
-    }
+
+    if (event.target?.closest?.("[data-auth-action='logout']")) clearAdminState();
   };
 
   const onHashChange = () => queueMicrotask(refresh);
@@ -217,9 +287,7 @@ export function installAdminAuthenticationExperience({
   windowRef?.addEventListener?.("hashchange", onHashChange);
 
   const Observer = windowRef?.MutationObserver || globalThis.MutationObserver;
-  observer = Observer && target
-    ? new Observer(() => queueMicrotask(refresh))
-    : null;
+  observer = Observer && outlet() ? new Observer(() => queueMicrotask(refresh)) : null;
   observe();
   void refresh();
 
@@ -227,6 +295,7 @@ export function installAdminAuthenticationExperience({
     refresh,
     get elevation() { return elevation; },
     get adminAttempt() { return adminAttempt; },
+    get presentation() { return presentation; },
     get activeSection() { return activeSection; },
     get reviewStatus() { return reviewStatus; },
     dispose() {
