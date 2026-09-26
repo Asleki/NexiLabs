@@ -80,6 +80,15 @@ EXPECTED_NEXILABS_RI_2_GOVERNANCE_SUCCESSORS = {
 }
 
 
+# P006.UI.10.4 compatibility maintenance: Admin/Developer frontend access
+# legitimately advances only the centralized operational governance lock here.
+# All earlier governance generations remain immutable historical evidence.
+EXPECTED_P006_UI_10_4_GOVERNANCE_SUCCESSORS = {
+    "tests/registries/nngla/test_p006_7_11_7_20_operational_backend_lock.py":
+        "38f84078933c95a4e764f66439d74d9aaeeb0538735a7b112c34d47c70284f0b",
+}
+
+
 HISTORICAL_15_10_1_POOL_SHA256 = (
     "b478ca0808871c9bc4572f119d1f75ef83edaa241668653b77a2eb33fd72879b"
 )
@@ -171,6 +180,9 @@ def test_governance_successors_are_exact_and_preserve_predecessor_evidence():
             continue
         ri_2_expected = EXPECTED_NEXILABS_RI_2_GOVERNANCE_SUCCESSORS.get(relative)
         if ri_2_expected is not None and actual == ri_2_expected:
+            continue
+        ui_10_4_expected = EXPECTED_P006_UI_10_4_GOVERNANCE_SUCCESSORS.get(relative)
+        if ui_10_4_expected is not None and actual == ui_10_4_expected:
             continue
         r2_expected = EXPECTED_P006_UI_10_1_R2_GOVERNANCE_SUCCESSORS.get(relative)
         assert r2_expected is not None, (

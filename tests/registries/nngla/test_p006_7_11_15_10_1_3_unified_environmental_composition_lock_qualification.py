@@ -56,6 +56,14 @@ EXPECTED_NEXILABS_RI_2_REQUEST_GOVERNANCE_QUALIFICATION_SHA256 = (
     "9980eebec89303c4a5845e7311a6824b4a7b18a653d0fb0bf14ea77aacfd59a8"
 )
 
+# P006.UI.10.4 compatibility maintenance: preserve every earlier
+# request-governance qualification hash above while recognizing the exact
+# reviewed P006.UI.10.4 successor.
+EXPECTED_P006_UI_10_4_REQUEST_GOVERNANCE_QUALIFICATION_SHA256 = (
+    "c05359f5d5243c1b5d5f7c1b78004652f9acaae0c92bf84099e46db59a0ff9fc"
+)
+
+
 EXPECTED_15_10_1_HISTORICAL_TEST_SUCCESSORS = {
     "frontend/tests/integration/p006_7_11_15_10_map-first-css-contract.test.mjs":
         "b757a4a5994cb9d0630a15534338b0d07a4816115ba5f59c07213975cde16278",
@@ -217,8 +225,11 @@ def test_historical_successor_evidence_remains_present_and_distinct():
     assert EXPECTED_NEXILABS_RI_2_REQUEST_GOVERNANCE_QUALIFICATION_SHA256 == (
         "9980eebec89303c4a5845e7311a6824b4a7b18a653d0fb0bf14ea77aacfd59a8"
     )
+    assert EXPECTED_P006_UI_10_4_REQUEST_GOVERNANCE_QUALIFICATION_SHA256 == (
+        "c05359f5d5243c1b5d5f7c1b78004652f9acaae0c92bf84099e46db59a0ff9fc"
+    )
     assert sha256(predecessor_qualification.read_bytes()).hexdigest() == (
-        EXPECTED_NEXILABS_RI_2_REQUEST_GOVERNANCE_QUALIFICATION_SHA256
+        EXPECTED_P006_UI_10_4_REQUEST_GOVERNANCE_QUALIFICATION_SHA256
     )
     predecessor_text = predecessor_qualification.read_text(encoding="utf-8")
     assert "EXPECTED_GOVERNANCE_SUCCESSORS" in predecessor_text
@@ -227,6 +238,7 @@ def test_historical_successor_evidence_remains_present_and_distinct():
     assert "EXPECTED_P006_UI_10_1_R2_GOVERNANCE_SUCCESSORS" in predecessor_text
     assert "EXPECTED_P006_UI_10_3_GOVERNANCE_SUCCESSORS" in predecessor_text
     assert "EXPECTED_NEXILABS_RI_2_GOVERNANCE_SUCCESSORS" in predecessor_text
+    assert "EXPECTED_P006_UI_10_4_GOVERNANCE_SUCCESSORS" in predecessor_text
     assert "ccc7a1ea66eb7884eee3895a0bd5a93155ad26104f410c63481d2480817aed6b" in predecessor_text
     assert "76aeaa901f96fd87328615b61022fae293e1f7d8487e643294d84d1c44c4e1d4" in predecessor_text
 

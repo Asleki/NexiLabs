@@ -1,4 +1,4 @@
-/** P006.UI.10.1 — Frontend-only account enrollment experience; no API, DB or credential authority. */
+/** P006.UI.10.4 — Frontend-only enrollment presentation; no API, DB or credential authority. */
 import {
   AccountEnrollmentRoute,
   accountEnrollmentRouteFromHash,
@@ -22,7 +22,7 @@ import {
   developerEmailVerificationMarkup,
   developerEnigmaProvisioningMarkup,
   developerAccountCompleteMarkup,
-} from "../../ui/pages/developer-account-enrollment.js";
+} from "../../ui/pages/developer-account-enrollment-p006-ui-10-4.js";
 
 const HOME_HASH = "#/runtime";
 const STYLE_HREF = "./styles/account-enrollment-v1.css";

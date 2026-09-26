@@ -1,0 +1,24 @@
+[Unit]
+Description=NexiLabs private Production authentication authority
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=nexa-auth
+Group=nexa-auth
+WorkingDirectory=/opt/nexa/nexilabs-production-auth/current
+EnvironmentFile=/etc/nexa/nexilabs-production-auth.env
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/opt/nexa/nexilabs-production-auth/shared/venv/bin/python -m backend.auth.production_auth_transport.server --host 127.0.0.1 --port 8767
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+ReadOnlyPaths=/etc/nexa/nexilabs-production-auth.env /etc/nexa/nexilabs-auth-private
+
+[Install]
+WantedBy=multi-user.target

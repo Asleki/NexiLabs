@@ -1,6 +1,8 @@
-/** P006.UI.10.3 R2 — Conditional Admin elevation inside an authenticated Production Developer session. */
-import { createProductionAuthClient } from "./production-auth-client.js";
-import { adminElevatedMarkup, adminEnigmaMarkup, adminLoginMarkup } from "../../ui/pages/admin-login.js";
+/** P006.UI.10.4 — Conditional Admin elevation and guarded Admin Workspace. */
+import { createProductionAuthClient } from "./production-auth-client-p006-ui-10-4.js";
+import { adminEnigmaMarkup, adminLoginMarkup } from "../../ui/pages/admin-login.js";
+import { adminWorkspaceMarkup, AdminWorkspaceSection } from "../../ui/pages/admin-workspace.js";
+import { AdminReviewStatus } from "../admin/admin-review-view-model.js";
 
 function formValue(form, name) {
   return String(new FormData(form).get(name) || "").trim();
@@ -16,6 +18,8 @@ export function installAdminAuthenticationExperience({
   let eligibility = null;
   let adminAttempt = null;
   let elevation = null;
+  let activeSection = AdminWorkspaceSection.OVERVIEW;
+  let reviewStatus = AdminReviewStatus.PENDING;
   let refreshGeneration = 0;
   let observer = null;
   let expiryTimer = null;
@@ -35,6 +39,10 @@ export function installAdminAuthenticationExperience({
       expiryTimer = null;
     }
   };
+  const resetAdminPresentationState = () => {
+    activeSection = AdminWorkspaceSection.OVERVIEW;
+    reviewStatus = AdminReviewStatus.PENDING;
+  };
   const removeBoundary = () => mutatePresentation(() => boundary()?.remove?.());
 
   const scheduleExpiry = () => {
@@ -46,6 +54,7 @@ export function installAdminAuthenticationExperience({
       const current = elevation;
       elevation = null;
       adminAttempt = null;
+      resetAdminPresentationState();
       renderBoundary();
       if (session?.sessionId && current?.elevationId) {
         try { await client.revokeAdminElevation(session.sessionId, current.elevationId); } catch { /* expiry is still local */ }
@@ -61,7 +70,7 @@ export function installAdminAuthenticationExperience({
       return;
     }
     const markup = elevation
-      ? adminElevatedMarkup({ elevation })
+      ? adminWorkspaceMarkup({ elevation, activeSection, reviewStatus })
       : adminAttempt
         ? adminEnigmaMarkup({ challenge: adminAttempt.challenge, error })
         : adminLoginMarkup({ eligibility, error });
@@ -81,6 +90,7 @@ export function installAdminAuthenticationExperience({
       eligibility = null;
       adminAttempt = null;
       elevation = null;
+      resetAdminPresentationState();
       clearExpiryTimer();
       removeBoundary();
       return null;
@@ -92,6 +102,7 @@ export function installAdminAuthenticationExperience({
       if (!eligibility.eligible) {
         adminAttempt = null;
         elevation = null;
+        resetAdminPresentationState();
       }
       renderBoundary();
       return eligibility;
@@ -100,6 +111,7 @@ export function installAdminAuthenticationExperience({
       eligibility = null;
       adminAttempt = null;
       elevation = null;
+      resetAdminPresentationState();
       clearExpiryTimer();
       removeBoundary();
       return null;
@@ -109,6 +121,11 @@ export function installAdminAuthenticationExperience({
   const onSubmit = async (event) => {
     const credentialForm = event.target?.closest?.("[data-admin-auth-form='elevate']");
     const enigmaForm = event.target?.closest?.("[data-admin-auth-form='enigma']");
+    const reviewForm = event.target?.closest?.("[data-admin-review-decision-form]");
+    if (reviewForm) {
+      event.preventDefault();
+      return; // Review persistence authority is deliberately deferred.
+    }
     if (!credentialForm && !enigmaForm) return;
     event.preventDefault();
     const session = authentication.context.session;
@@ -122,10 +139,12 @@ export function installAdminAuthenticationExperience({
         });
         adminAttempt = { attemptId: payload.attemptId, challenge: payload.challenge };
         elevation = null;
+        resetAdminPresentationState();
         renderBoundary();
       } catch (error) {
         adminAttempt = null;
         elevation = null;
+        resetAdminPresentationState();
         renderBoundary({ error: error?.message || "Admin login failed." });
       }
       return;
@@ -139,6 +158,7 @@ export function installAdminAuthenticationExperience({
         });
         adminAttempt = null;
         elevation = payload.elevation;
+        resetAdminPresentationState();
         renderBoundary();
       } catch (error) {
         renderBoundary({ error: error?.message || "Admin Enigma verification failed." });
@@ -147,12 +167,33 @@ export function installAdminAuthenticationExperience({
   };
 
   const onClick = async (event) => {
+    if (elevation) {
+      const sectionTarget = event.target?.closest?.("[data-admin-workspace-section]");
+      if (sectionTarget && Object.values(AdminWorkspaceSection).includes(sectionTarget.dataset.adminWorkspaceSection)) {
+        activeSection = sectionTarget.dataset.adminWorkspaceSection;
+        renderBoundary();
+        return;
+      }
+      const statusTarget = event.target?.closest?.("[data-admin-review-status]");
+      if (statusTarget && Object.values(AdminReviewStatus).includes(statusTarget.dataset.adminReviewStatus)) {
+        activeSection = AdminWorkspaceSection.REVIEWS;
+        reviewStatus = statusTarget.dataset.adminReviewStatus;
+        renderBoundary();
+        return;
+      }
+      if (event.target?.closest?.("[data-admin-review-decision]")) {
+        event.preventDefault?.();
+        return; // Never fabricate a persisted decision.
+      }
+    }
+
     const revoke = event.target?.closest?.("[data-admin-auth-action='revoke']");
     if (revoke) {
       const session = authentication.context.session;
       const current = elevation;
       elevation = null;
       adminAttempt = null;
+      resetAdminPresentationState();
       clearExpiryTimer();
       renderBoundary();
       if (session?.sessionId && current?.elevationId) {
@@ -164,6 +205,7 @@ export function installAdminAuthenticationExperience({
       eligibility = null;
       adminAttempt = null;
       elevation = null;
+      resetAdminPresentationState();
       clearExpiryTimer();
       removeBoundary();
     }
@@ -185,6 +227,8 @@ export function installAdminAuthenticationExperience({
     refresh,
     get elevation() { return elevation; },
     get adminAttempt() { return adminAttempt; },
+    get activeSection() { return activeSection; },
+    get reviewStatus() { return reviewStatus; },
     dispose() {
       clearExpiryTimer();
       observer?.disconnect?.();

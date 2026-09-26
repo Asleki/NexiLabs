@@ -579,6 +579,44 @@ def _authorized_p006_ui_10_3_layered_admin_composition_successor(
     )
 
 
+# P006.UI.10.4 — exact reviewed Admin/Developer frontend access integration
+# successors. This seam recognizes only the three reviewed compatibility edits
+# and requires the milestone's focused proof files to exist.
+P006_UI_10_4_FRONTEND_ACCESS_SUCCESSOR_SHA256 = {
+    "frontend/src/app/account/account-enrollment-experience.js": "cc7fcecd639e4652556cc4030d01c9724675758ca2121b0b8a0fef9413e2c2d6",
+    "frontend/src/app/auth/admin-authentication-experience.js": "5bfe63725d1ea4c32bae47cd39aed4988aa0969d238f59a568b1064dcb43d1f8",
+    "frontend/src/app/auth/runtime-auth-client.js": "4843acd715d204c88947e6df8e70f798fd1a6455f09ce90e88ce49a8bd2759b7",
+}
+P006_UI_10_4_FRONTEND_ACCESS_PROOF_FILES = (
+    "frontend/tests/account/p006-ui-10-4-developer-enrollment.test.mjs",
+    "frontend/tests/auth/p006-ui-10-4-admin-authentication-experience.test.mjs",
+    "frontend/tests/auth/p006-ui-10-4-admin-workspace.test.mjs",
+    "frontend/tests/auth/p006-ui-10-4-production-auth-client.test.mjs",
+    "infrastructure/tests/contract/test_p006_ui_10_4_frontend_access_integration.py",
+    "tests/unit/backend/auth/production_auth_transport/test_p006_ui_10_4_production_auth_transport_contracts.py",
+)
+
+
+def _authorized_p006_ui_10_4_frontend_access_successor(
+    root: Path,
+    target_path: str,
+) -> bool:
+    """Authorize only exact reviewed P006.UI.10.4 compatibility successors."""
+    expected = P006_UI_10_4_FRONTEND_ACCESS_SUCCESSOR_SHA256.get(target_path)
+    if expected is None:
+        return False
+    if not all(
+        (root / proof).is_file()
+        for proof in P006_UI_10_4_FRONTEND_ACCESS_PROOF_FILES
+    ):
+        return False
+    candidate = root / target_path
+    return (
+        candidate.is_file()
+        and sha256(candidate.read_bytes()).hexdigest() == expected
+    )
+
+
 # NEXILABS.RI.2 — exact repository-presentation successor.
 # README.md is repository presentation/documentation rather than a Production
 # runtime or roadmap authority. This seam authorizes only the reviewed RI.2
@@ -692,6 +730,8 @@ def test_phase_b_e_does_not_modify_locked_production_or_roadmap_files():
         if _authorized_p006_ui_10_1_account_enrollment_composition_successor(root, target_path):
             continue
         if _authorized_p006_ui_10_3_layered_admin_composition_successor(root, target_path):
+            continue
+        if _authorized_p006_ui_10_4_frontend_access_successor(root, target_path):
             continue
         if _authorized_nexilabs_ri_2_repository_presentation_successor(root, target_path):
             continue

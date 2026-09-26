@@ -8,6 +8,7 @@ const MAP_FIRST_PRESENTATION_SAME_GENERATION_REFRESH_MARKER = "nexilabs-refresh-
 const STYLING_ARCHITECTURE_LOCK_SAME_GENERATION_REFRESH_MARKER = "nexilabs-refresh-p006-7-11-15-10-1";
 const UNIFIED_ENVIRONMENTAL_COMPOSITION_SAME_GENERATION_REFRESH_MARKER = "nexilabs-refresh-p006-7-11-15-10-1-3";
 const ACCOUNT_ENROLLMENT_ACTIVATION_SAME_GENERATION_REFRESH_MARKER = "nexilabs-refresh-p006-ui-10-1-r2";
+const FRONTEND_ACCESS_INTEGRATION_SAME_GENERATION_REFRESH_MARKER = "nexilabs-refresh-p006-ui-10-4-r2";
 const OFFLINE_URL = "./index.html";
 const NAVIGATION_NETWORK_TIMEOUT_MS = 1800;
 const LIVE_AUTHORITY_PATH_PREFIXES = Object.freeze([
@@ -15,6 +16,20 @@ const LIVE_AUTHORITY_PATH_PREFIXES = Object.freeze([
   "/auth",
   "/api/v1",
 ]);
+
+const FRONTEND_ACCESS_INTEGRATION_PATHS = Object.freeze([
+  "/src/app/account/account-enrollment-experience.js",
+  "/src/app/admin/admin-review-view-model.js",
+  "/src/app/auth/admin-authentication-experience.js",
+  "/src/app/auth/production-auth-client-p006-ui-10-4.js",
+  "/src/app/auth/runtime-auth-client.js",
+  "/src/ui/pages/admin-workspace.js",
+  "/src/ui/pages/developer-account-enrollment-p006-ui-10-4.js",
+]);
+
+function isFrontendAccessIntegrationPath(pathname) {
+  return FRONTEND_ACCESS_INTEGRATION_PATHS.includes(pathname);
+}
 
 function isLiveAuthorityPath(pathname) {
   return LIVE_AUTHORITY_PATH_PREFIXES.some(
@@ -36,6 +51,23 @@ async function removeCachedLiveAuthorityResponses(cache) {
   );
 }
 
+async function frontendAccessIntegrationResponse(request) {
+  try {
+    const response = await fetch(request, { cache: "no-store" });
+
+    if (response && response.status === 200 && response.type !== "opaque") {
+      const cache = await caches.open(CACHE_NAME);
+      await cache.put(request, response.clone());
+    }
+
+    return response;
+  } catch (error) {
+    const cached = await caches.match(request);
+    if (cached) return cached;
+    throw error;
+  }
+}
+
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -54,6 +86,12 @@ const APP_SHELL = [
   "./src/main.js",
   "./src/app/account/account-enrollment-route.js",
   "./src/app/account/account-enrollment-experience.js",
+  "./src/app/admin/admin-review-view-model.js",
+  "./src/app/auth/admin-authentication-experience.js",
+  "./src/app/auth/production-auth-client-p006-ui-10-4.js",
+  "./src/app/auth/runtime-auth-client.js",
+  "./src/ui/pages/admin-workspace.js",
+  "./src/ui/pages/developer-account-enrollment-p006-ui-10-4.js",
   "./src/ui/partials/header.html",
   "./src/ui/partials/footer.html",
   "./src/app/navigation/application-route.js",
@@ -228,6 +266,7 @@ self.addEventListener("install", (event) => {
       await caches.open(STYLING_ARCHITECTURE_LOCK_SAME_GENERATION_REFRESH_MARKER);
       await caches.open(UNIFIED_ENVIRONMENTAL_COMPOSITION_SAME_GENERATION_REFRESH_MARKER);
       await caches.open(ACCOUNT_ENROLLMENT_ACTIVATION_SAME_GENERATION_REFRESH_MARKER);
+      await caches.open(FRONTEND_ACCESS_INTEGRATION_SAME_GENERATION_REFRESH_MARKER);
     }
 
     await self.skipWaiting();
@@ -244,7 +283,8 @@ self.addEventListener("activate", (event) => {
       || keys.includes(MAP_FIRST_PRESENTATION_SAME_GENERATION_REFRESH_MARKER)
       || keys.includes(STYLING_ARCHITECTURE_LOCK_SAME_GENERATION_REFRESH_MARKER)
       || keys.includes(UNIFIED_ENVIRONMENTAL_COMPOSITION_SAME_GENERATION_REFRESH_MARKER)
-      || keys.includes(ACCOUNT_ENROLLMENT_ACTIVATION_SAME_GENERATION_REFRESH_MARKER);
+      || keys.includes(ACCOUNT_ENROLLMENT_ACTIVATION_SAME_GENERATION_REFRESH_MARKER)
+      || keys.includes(FRONTEND_ACCESS_INTEGRATION_SAME_GENERATION_REFRESH_MARKER);
     const previousShellKeys = keys.filter(
       (key) => key.startsWith("nexilabs-shell-") && key !== CACHE_NAME
     );
@@ -289,6 +329,11 @@ self.addEventListener("fetch", (event) => {
 
   if (isLiveAuthorityPath(url.pathname)) {
     event.respondWith(fetch(request, { cache: "no-store" }));
+    return;
+  }
+
+  if (isFrontendAccessIntegrationPath(url.pathname)) {
+    event.respondWith(frontendAccessIntegrationResponse(request));
     return;
   }
 

@@ -40,7 +40,7 @@ function loadWorker({ cacheEntries = [] } = {}) {
     console,
     fetch: async (request, options) => {
       state.fetchCalls.push({ request, options });
-      return { status: 200, type: "basic", clone() { return this; } };
+      return { source: "network", status: 200, type: "basic", clone() { return this; } };
     },
     caches: {
       keys: async () => ["nexilabs-shell-v17"],
@@ -164,4 +164,37 @@ test("PTB.11 edge worker preserves v17 shell inventory and offline fallback", ()
   assert.match(source, /request\.mode === "navigate"/);
   assert.match(source, /\.\/src\/ui\/pages\/simulation-workspace\.js/);
   assert.match(source, /\.\/src\/app\/features\/novegeo-feature-runtime\.js/);
+});
+
+
+test("P006.UI.10.4 frontend access integration has an explicit same-generation refresh", () => {
+  assert.match(source, /nexilabs-refresh-p006-ui-10-4-r2/);
+  assert.match(source, /FRONTEND_ACCESS_INTEGRATION_PATHS/);
+
+  for (const path of [
+    "/src/app/account/account-enrollment-experience.js",
+    "/src/app/admin/admin-review-view-model.js",
+    "/src/app/auth/admin-authentication-experience.js",
+    "/src/app/auth/production-auth-client-p006-ui-10-4.js",
+    "/src/app/auth/runtime-auth-client.js",
+    "/src/ui/pages/admin-workspace.js",
+    "/src/ui/pages/developer-account-enrollment-p006-ui-10-4.js",
+  ]) {
+    assert.ok(source.includes(`"${path}"`), path);
+  }
+});
+
+test("P006.UI.10.4 frontend access modules prefer live network over stale CacheStorage", async () => {
+  const { listeners, state } = loadWorker();
+
+  const response = await dispatchFetch(listeners.get("fetch"), {
+    method: "GET",
+    mode: "cors",
+    url: "https://nexilabs.example/src/app/auth/runtime-auth-client.js",
+  });
+
+  assert.equal(response.source, "network");
+  assert.equal(state.fetchCalls.length, 1);
+  assert.equal(state.fetchCalls[0].options.cache, "no-store");
+  assert.equal(state.cacheMatchCalls.length, 0);
 });

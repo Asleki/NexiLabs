@@ -1,0 +1,19 @@
+{
+  "milestone": "P006.UI.10.4",
+  "sourceLockCommit": "7f312b1f9f86031e07664f6a126d88cabab2b11b",
+  "publicBrowserNamespace": "/auth/*",
+  "privateListener": "127.0.0.1:8767",
+  "canonicalAdminNamespace": "/auth/admin/*",
+  "bootstrapHttpExposed": false,
+  "databaseMigrationRequired": false,
+  "serviceWorkerChanged": false,
+  "roadmapChanged": false,
+  "privateCredentialMaterialPackaged": false,
+  "deferredAuthorities": [
+    "Developer access request submission",
+    "Developer Setup issuance and verification",
+    "ordinary Developer account creation",
+    "Admin Review read/approve/reject API",
+    "credential bundle generation and delivery"
+  ]
+}

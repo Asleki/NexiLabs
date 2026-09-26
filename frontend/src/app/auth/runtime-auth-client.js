@@ -1,6 +1,6 @@
-/** P006.UI.10.3 — Runtime-aware auth transport without changing locked auth orchestration. */
+/** P006.UI.10.4 — Runtime-aware auth transport over the locked authentication orchestration. */
 import { createDevelopmentAuthClient } from "./development-auth-client.js";
-import { createProductionAuthClient } from "./production-auth-client.js";
+import { createProductionAuthClient } from "./production-auth-client-p006-ui-10-4.js";
 
 export function createRuntimeAuthClient({ fetchRef = globalThis.fetch, windowRef = globalThis.window } = {}) {
   const development = createDevelopmentAuthClient({ fetchRef, windowRef });
@@ -10,7 +10,7 @@ export function createRuntimeAuthClient({ fetchRef = globalThis.fetch, windowRef
   const isProductionToken = (token) => String(token || "").startsWith("prod-session:");
 
   return Object.freeze({
-    // Guest persistence/cutover is deliberately outside P006.UI.10.3.
+    // Guest persistence/cutover remains deliberately outside P006.UI.10.4.
     loginGuest: (input) => development.loginGuest(input),
     async startDeveloper(input) {
       pendingDeveloperAuthority = String(input?.runtime || "").toLowerCase() === "production"

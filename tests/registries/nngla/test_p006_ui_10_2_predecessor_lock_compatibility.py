@@ -47,6 +47,19 @@ NEXILABS_RI_2_REVIEWED_SUCCESSOR_SHA256 = {
 }
 
 
+# P006.UI.10.4 exact reviewed governance successors. Historical P006.UI.10.3
+# and NEXILABS.RI.2 hashes above remain immutable provenance; these values
+# qualify only the current uncommitted P006.UI.10.4 governance closure.
+P006_UI_10_4_REVIEWED_SUCCESSOR_SHA256 = {
+    "tests/registries/nngla/test_p006_7_11_7_20_operational_backend_lock.py":
+        "38f84078933c95a4e764f66439d74d9aaeeb0538735a7b112c34d47c70284f0b",
+    "tests/registries/nngla/test_p006_7_11_15_10_1_2_request_scoped_materialization_lock_qualification.py":
+        "c05359f5d5243c1b5d5f7c1b78004652f9acaae0c92bf84099e46db59a0ff9fc",
+    "tests/registries/nngla/test_p006_7_11_15_10_1_3_unified_environmental_composition_lock_qualification.py":
+        "fed0416569772d4e781ad4865b94548ae3b919f518853e64fbf712353f12f786",
+}
+
+
 IMMUTABLE_PREDECESSOR_PATHS = (
     "frontend/src/main.js",
     "frontend/sw.js",
@@ -119,6 +132,7 @@ def test_d62c5c1_known_strict_hash_predecessors_are_still_exact() -> None:
 
         p006_ui_10_3 = P006_UI_10_3_REVIEWED_SUCCESSOR_SHA256.get(path)
         ri_2 = NEXILABS_RI_2_REVIEWED_SUCCESSOR_SHA256.get(path)
+        p006_ui_10_4 = P006_UI_10_4_REVIEWED_SUCCESSOR_SHA256.get(path)
 
         if ri_2 is not None:
             assert p006_ui_10_3 is not None, path
@@ -139,7 +153,10 @@ def test_d62c5c1_known_strict_hash_predecessors_are_still_exact() -> None:
             assert sha256(ri_2_bytes).hexdigest() == ri_2, path
 
             assert sha256(head).hexdigest() == ri_2, path
-            assert sha256(candidate.read_bytes()).hexdigest() == ri_2, path
+            if p006_ui_10_4 is not None:
+                assert sha256(candidate.read_bytes()).hexdigest() == p006_ui_10_4, path
+            else:
+                assert sha256(candidate.read_bytes()).hexdigest() == ri_2, path
         elif p006_ui_10_3 is not None:
             assert sha256(head).hexdigest() == p006_ui_10_3, path
             assert sha256(candidate.read_bytes()).hexdigest() == p006_ui_10_3, path
@@ -159,6 +176,7 @@ def test_all_locked_auth_pwa_strict_tests_and_roadmaps_are_byte_identical_to_hea
 
         p006_ui_10_3 = P006_UI_10_3_REVIEWED_SUCCESSOR_SHA256.get(path)
         ri_2 = NEXILABS_RI_2_REVIEWED_SUCCESSOR_SHA256.get(path)
+        p006_ui_10_4 = P006_UI_10_4_REVIEWED_SUCCESSOR_SHA256.get(path)
 
         if ri_2 is not None:
             assert p006_ui_10_3 is not None, path
@@ -179,7 +197,10 @@ def test_all_locked_auth_pwa_strict_tests_and_roadmaps_are_byte_identical_to_hea
             assert sha256(ri_2_bytes).hexdigest() == ri_2, path
 
             assert sha256(head).hexdigest() == ri_2, path
-            assert sha256(candidate.read_bytes()).hexdigest() == ri_2, path
+            if p006_ui_10_4 is not None:
+                assert sha256(candidate.read_bytes()).hexdigest() == p006_ui_10_4, path
+            else:
+                assert sha256(candidate.read_bytes()).hexdigest() == ri_2, path
             continue
 
         if p006_ui_10_3 is not None:
